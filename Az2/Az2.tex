@@ -1,0 +1,397 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+
+\usepackage{xepersian}
+\settextfont{XB Niloofar}
+
+\providecommand{\lr}[1]{\LR{#1}}
+
+\geometry{a4paper, margin=2.5cm}
+\setlength{\headheight}{16pt}
+\captionsetup{font=footnotesize, labelfont=bf}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{آزمایشگاه مدار منطقی -- آزمایش دوم: شیفت‌رجیستر}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{گزارش آزمایش دوم آزمایشگاه مدار منطقی\\[4pt]\large شیفت‌رجیستر}}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge \textbf{گزارش آزمایش دوم}}\\[0.5cm]
+{\LARGE شیفت‌رجیستر}\\[2cm]
+
+{\Large آزمایشگاه مدار منطقی}\\[3cm]
+
+{\large
+\begin{tabular}{c}
+علی‌اصغر طایری -- ۴۰۴۱۷۱۱۳۳ \\[0.4cm]
+رضا حضرتی -- ۴۰۴۱۰۵۷6۷ \\
+\end{tabular}
+}
+
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+\section{مقدمه و تعریف مسئله}
+هدف از این آزمایش، آشنایی عملی با نحوه‌ی کارکرد انواع شیفت‌رجیسترها است. شیفت‌رجیستر مداری متوالی \lr{(Sequential)} متشکل از چند فلیپ‌فلاپ است که به‌صورت زنجیره‌ای به هم متصل شده‌اند و در هر ضربه‌ی کلاک، محتوای خود را به سمت راست یا چپ جابه‌جا می‌کند.
+
+در این آزمایش دو رویکرد برای پیاده‌سازی شیفت‌رجیستر بررسی می‌شود:
+\begin{itemize}
+    \item ساخت شیفت‌رجیستر از پایه با استفاده از فلیپ‌فلاپ‌های نوع \lr{D} و گیت‌های منطقی جانبی برای ایجاد قابلیت بارگذاری موازی \lr{(Parallel Load)} و شیفت دوطرفه؛
+    \item استفاده از تراشه‌ی آماده‌ی ۷۴۹۵ که ذاتاً قابلیت شیفت به راست و بارگذاری موازی را دارد، به‌همراه طراحی مدار ترکیبی برای شناسایی رشته‌های خاص در جریان بیت‌های ورودی سریال.
+\end{itemize}
+
+تمامی مراحل طراحی ابتدا در نرم‌افزار \lr{Logisim} شبیه‌سازی و صحت‌سنجی شده و سپس مدار نهایی در نرم‌افزار \lr{Proteus} پیاده‌سازی و با استفاده از کلید \lr{(Push Button)} به‌عنوان ورودی کلاک، تست شده است.
+
+\section{بررسی و انتخاب روش طراحی}
+برای پیاده‌سازی شیفت‌رجیستر با قابلیت بارگذاری موازی، از چهار فلیپ‌فلاپ نوع \lr{D} استفاده شد. علت انتخاب فلیپ‌فلاپ \lr{D} نسبت به سایر انواع سادگی مدار کنترل و تطابق مستقیم آن با ساختار شیفت‌رجیستر است؛ زیرا در هر لحظه فقط باید مقدار ورودی \lr{D} در لبه‌ی کلاک به خروجی منتقل شود.
+
+برای انتخاب بین دو حالت «بارگذاری موازی» و «شیفت سریال»، از یک مالتی‌پلکسر دوکاناله‌ی ساخته‌شده با گیت‌های \lr{AND} و \lr{OR} در ورودی هر فلیپ‌فلاپ استفاده شد:
+\begin{itemize}
+    \item وقتی \lr{Mode = 1} است، ورودی موازی مربوطه (\lr{A} تا \lr{D}) از طریق گیت \lr{AND} به \lr{OR} راه می‌یابد و در لبه‌ی بعدی کلاک وارد فلیپ‌فلاپ می‌شود (بارگذاری موازی).
+    \item وقتی \lr{Mode = 0} است، خروجی فلیپ‌فلاپ طبقه‌ی قبلی (یا ورودی سریال \lr{$S_{in}$} برای اولین طبقه) از طریق گیت \lr{AND} دیگر به \lr{OR} راه می‌یابد (شیفت سریال).
+\end{itemize}
+این ساختار در تصاویر پروتئوس کاملاً قابل مشاهده است: هر فلیپ‌فلاپ یک گیت \lr{OR} در ورودی \lr{D} خود دارد که خروجی دو گیت \lr{AND} را ترکیب می‌کند.
+
+برای بخش بعد که استفاده از تراشه‌ی آماده‌ی ۷۴۹۵ خواسته شده، از قابلیت داخلی این تراشه برای انتخاب بین بارگذاری موازی و شیفت سریال به راست استفاده شد و برای بخش تشخیص رشته، مداری ترکیبی طراحی شد که در هر لحظه محتوای رجیستر (که همواره آخرین ۴ بیت دریافتی است) را با چهار الگوی هدف مقایسه می‌کند و در صورت تطابق هرکدام، خروجی یک تولید می‌کند؛ این کار با طراحی یک مدار مقایسه‌گر مبتنی بر گیت‌های \lr{XOR}، \lr{NOT} و \lr{AND} برای هر الگو، و ترکیب خروجی چهار مقایسه‌گر از طریق یک گیت \lr{OR} نهایی، روی خروجی چهار طبقه‌ی رجیستر پیاده‌سازی شد (مشابه یک مقایسه‌گر ترکیبی چهار ورودی).
+
+\section{بلوک‌دیاگرام طرح اولیه}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        block/.style={draw, rectangle, minimum width=1.9cm, minimum height=1cm,
+                      align=center, fill=blue!8, rounded corners, thick, font=\small},
+        io/.style={draw, rectangle, minimum width=1.8cm, minimum height=1.1cm,
+                   align=center, fill=green!10, rounded corners, thick, font=\small},
+        myarrow/.style={-{Latex}, thick}
+    ]
+
+    \node[io] (inputs) {ورودی‌ها\\ \lr{A..D, S\textsubscript{in}}};
+    \node[block, right=0.9cm of inputs] (mux)  {\lr{MUX}\\(Mode)};
+    \node[block, right=0.9cm of mux]    (ff1)  {\lr{FF\textsubscript{1}}};
+    \node[block, right=0.9cm of ff1]    (ff2)  {\lr{FF\textsubscript{2}}};
+
+    \node[block, below=1.6cm of ff2] (ff3) {\lr{FF\textsubscript{3}}};
+    \node[block, right=0.9cm of ff3] (ff4) {\lr{FF\textsubscript{4}}};
+    \node[io, right=0.9cm of ff4]    (out) {خروجی\\ \lr{Q}};
+
+    \draw[myarrow] (inputs) -- (mux);
+    \draw[myarrow] (mux)    -- (ff1);
+    \draw[myarrow] (ff1)    -- (ff2);
+    \draw[myarrow] (ff2)    -- (ff3);
+    \draw[myarrow] (ff3)    -- (ff4);
+    \draw[myarrow] (ff4)    -- (out);
+
+    \end{tikzpicture}
+    \caption{بلوک‌دیاگرام پیشنهادی اولیه‌ی شیفت‌رجیستر با قابلیت بارگذاری موازی}
+    \label{fig:block-diagram}
+\end{figure}
+
+\section{روند پیاده‌سازی}
+
+\subsection{ساخت شیفت‌رجیستر پایه با قابلیت بارگذاری موازی}
+مطابق شکل صورت آزمایش، مداری متشکل از چهار فلیپ‌فلاپ \lr{D} (دو تراشه‌ی ۴۰۱۳) ساخته شد. خروجی هر طبقه به‌عنوان یکی از ورودی‌های گیت \lr{AND} طبقه‌ی بعدی (مسیر شیفت) و ورودی‌های موازی \lr{A} تا \lr{D} به‌عنوان ورودی دیگر گیت‌های \lr{AND} (مسیر بارگذاری موازی) وارد شدند. سیگنال \lr{Mode} به‌طور مستقیم به گیت‌های \lr{AND} مسیر موازی و از طریق یک گیت \lr{NOT} به گیت‌های \lr{AND} مسیر شیفت متصل شد تا در هر لحظه دقیقاً یکی از دو مسیر فعال باشد. ورودی کلاک از طریق یک کلید فشاری \lr{(Push Button)} با مقاومت پول-داون تأمین شد تا بتوان مدار را پله‌به‌پله و با کنترل دستی آزمایش کرد.
+
+\subsection{ذخیره‌سازی مقدار اولیه‌ی ۱۰۱۰}
+برای بارگذاری مقدار ۱۰۱۰ در رجیستر، سیگنال \lr{Mode} روی مقدار ۱ (بارگذاری موازی) قرار داده شد و ورودی‌های موازی \lr{A}، \lr{B}، \lr{C}، \lr{D} به‌ترتیب با مقادیر متناظر با رشته‌ی ۱۰۱۰ تنظیم شدند. سپس با یک ضربه‌ی کلاک (فشردن دکمه‌ی \lr{Push Button})، مقدار به‌صورت هم‌زمان در هر چهار فلیپ‌فلاپ ذخیره شد و صحت آن از روی خروجی های هر طبقه بررسی گردید.
+
+\subsection{\texorpdfstring{شیفت‌رجیستر شیفت به راست با \lr{Mode} و $S_{in}$}{شیفت‌رجیستر شیفت به راست با Mode و Sin}}
+با فرض این‌که فلیپ‌فلاپ \lr{A} بیت پرارزش  رجیستر است، برای ایجاد قابلیت شیفت به راست، مسیر شیفت هر طبقه طوری سیم‌کشی شد که خروجی فلیپ‌فلاپ \emph{بالادست} (طبقه‌ی با ارزش بیشتر) به ورودی فلیپ‌فلاپ \emph{پایین‌دست} (طبقه‌ی با ارزش کمتر) منتقل شود؛ یعنی جهت انتقال داده از \lr{A} به سمت \lr{D} است. ورودی سریال \lr{$S_{in}$} به ورودی گیت \lr{AND} مسیر شیفت فلیپ‌فلاپ \lr{A} (بالاترین طبقه) متصل شد تا در هر شیفت، بیت جدید از سمت چپ اویر پروتئوس این بخش (شکل‌های \ref{fig:base-circuit} تا \ref{fig:test-last}) دقیقاً همین ساختار را نشان می‌دهند.
+
+\subsection{تبدیل به شیفت‌رجیستر دوطرفه بدون بارگذاری موازی}
+برای حذف قابلیت بارگذاری موازی و افزودن قابلیت شیفت به چپ، ورودی‌های موازی \lr{A} تا \lr{D} از مدار حذف و به‌جای آن‌ها، مسیر شیفت به چپ (انتقال داده از طبقه‌ی پایین‌دست به بالادست) به گیت‌های \lr{AND} دوم هر طبقه متصل شد. سیگنال \lr{Mode} اکنون به‌جای انتخاب «موازی/شیفت»، انتخاب «راست/چپ» را بر عهده گرفت: با \lr{Mode = 0} شیفت به راست (همان مسیر بند قبل) و با \lr{Mode = 1} شیفت به چپ (مسیر جدید) فعال می‌شود.
+
+\subsection{شیفت‌رجیستر با تراشه‌ی ۷۴۹۵}
+در این بخش از تراشه‌ی آماده‌ی ۷۴۹۵ استفاده شد که به‌صورت داخلی چهار فلیپ‌فلاپ \lr{D} به‌همراه مدار انتخاب موازی/سریال را در خود دارد. پایه‌ی \lr{Mode} این تراشه برای انتخاب بین بارگذاری موازی (ورودی‌های \lr{$P_0$} تا \lr{$P_3$}) و شیفت سریال به راست (ورودی \lr{$S_{in}$}) استفاده شد و پایه‌های کلاک به کلید \lr{Push Button} متصل شدند.
+
+\subsection{افزودن مدار تشخیص رشته}
+برای شناسایی پیوسته‌ی رشته‌های ۱۱۰۱، ۱۱۱۰، ۰۰۱۰ و ۰۰۰۱ در جریان بیت‌های ورودی سریال، از آن‌جا که رجیستر ۷۴۹۵ همواره آخرین چهار بیت دریافت‌شده را در خروجی‌های \lr{$Q_0$} تا \lr{$Q_3$} نگه می‌دارد، برای تشخیص هر یک از الگوهای هدف یک مدار ترکیبی مقایسه‌گر ساده متشکل از دو گیت \lr{XOR}، یک گیت \lr{NOT} و یک گیت \lr{AND} نهایی طراحی شد.
+
+هر یک از دو گیت \lr{XOR} یک جفت از خروجی‌های رجیستر (یا خروجی رجیستر و مقدار ثابت متناظر با بیت هدف در الگوی موردنظر) را با هم مقایسه می‌کند: در صورت برابر بودن دو ورودی، خروجی \lr{XOR} برابر صفر و در غیر این‌صورت برابر یک خواهد بود. خروجی گیت \lr{XOR} بالایی از طریق گیت \lr{NOT} معکوس می‌شود تا در حالت تطابق (خروجی \lr{XOR} برابر صفر) مقدار یک تولید کند؛ این خروجی به‌همراه خروجی گیت \lr{XOR} پایینی -- که با انتخاب مناسب سیگنال‌های مستقیم یا نقیض‌شده‌ی ورودی، در حالت تطابق به‌طور مستقیم مقدار یک تولید می‌کند -- وارد گیت \lr{AND} نهایی می‌شوند. بنابراین خروجی تنها زمانی برابر یک می‌شود که هر دو جفت از بیت‌های رجیستر با الگوی هدف برابر باشند، یعنی محتوای رجیستر دقیقاً برابر با رشته‌ی موردنظر است.
+\newpage
+\section{دیاگرام یا شماتیک طرح اولیه}
+طرح اولیه‌ی هر بخش ابتدا در نرم‌افزار \lr{Logisim} طراحی و صحت منطقی آن پیش از پیاده‌سازی در پروتئوس بررسی شد.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{211.PNG}
+    \caption{طرح اولیه‌ی لاجیسیم -- شیفت‌رجیستر پایه با بارگذاری موازی}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{214.PNG}
+    \caption{طرح اولیه‌ی لاجیسیم -- شیفت‌رجیستر دوطرفه بدون بارگذاری موازی}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{221.PNG}
+    \caption{طرح اولیه‌ی لاجیسیم -- شیفت‌رجیستر مبتنی بر ۷۴۹۵}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{222.PNG}
+    \caption{طرح اولیه‌ی لاجیسیم -- مدار تشخیص رشته}
+\end{figure}
+
+\section{دیاگرام طرح نهایی}
+شماتیک نهایی مدارها در نرم‌افزار \lr{Proteus} پیاده‌سازی شد. ساختار پایه (چهار فلیپ‌فلاپ D به‌همراه شبکه‌ی \lr{AND-OR} کنترل \lr{Mode} و \lr{$S_{in}$}) که مبنای مدار های خواسته شده است، در شکل \ref{fig:base-circuit} نشان داده شده است. نسبت به طرح اولیه‌ی لاجیسیم، تفاوت اصلی طرح نهایی، افزودن مقاومت‌های \lr{Pull-up/Pull-down} (\lr{R1} تا \lr{R3}) برای تعریف سطح منطقی پایدار روی پایه‌های ورودی و کلید \lr{Push Button} برای تولید دستی پالس کلاک است؛ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-1.png}
+    \caption{شماتیک نهایی پروتئوس -- شیفت‌رجیستر پایه پس از ساخت)}
+    \label{fig:base-circuit}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\linewidth]{2-1-2.png}
+    \caption{شماتیک نهایی پروتئوس -- بارگذاری مقدار اولیه‌ی ۱۰۱۰)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\linewidth]{2-1-main.PNG}
+    \caption{شماتیک نهایی پروتئوس -- شیفت‌رجیستر با تراشه‌ی ۷۴۹۵ (حالت اولیه، پیش از اعمال کلاک)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-2-main.PNG}
+    \caption{شماتیک نهایی پروتئوس -- مدار تشخیص رشته (ترکیب تراشه‌ی ۷۴۹۵ با گیت‌های \lr{XOR}، \lr{NOT} و \lr{AND})}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{214result1.PNG},
+    \includegraphics[width=0.78\linewidth]{214result2.PNG}
+    \caption{شماتیک نهایی لاجیسیم -- شیفت‌رجیستر دوطرفه}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{221.PNG}
+    \caption{شماتیک نهایی لاجیسیم -- شیفت‌رجیستر با زوش تراشه 7495}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{222-1101.PNG}
+    \caption{شماتیک نهایی لاجیسیم -- مدار تشخیص رشته}
+\end{figure}
+
+\section{بررسی Case Test ها}
+
+سه حالت آزمایشی زیر برای بررسی صحت عملکرد شیفت به راست بررسی شد. در هر حالت، مقدار \lr{$S_{in}$} و وضعیت خروجی چهار خروجی (متناظر با چهار طبقه‌ی رجیستر) پس از اعمال یک ضربه‌ی کلاک ثبت شده است.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-3-1.png}
+    \caption{حالت آزمایشی ۱ -- شیفت به راست}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-3-2.png}
+    \caption{حالت آزمایشی ۲ -- شیفت به راست}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-3-3.png}
+    \caption{حالت آزمایشی ۳ -- شیفت به راست}
+    \label{fig:test-last}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-3-4.png}
+    \caption{حالت آزمایشی ۴ -- شیفت به راست}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\linewidth]{214.PNG}
+    \caption{حالت اولیه}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{214result1.PNG}
+        \caption{تست اول}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{214result2.PNG}
+        \caption{تست دوم}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}[b]{0.45\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{214result3.PNG}
+        \caption{شیفت به راست}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{214result4.PNG}
+        \caption{شیفت به چپ}
+    \end{subfigure}
+
+    \caption{نتایج تست‌های شیفت}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{221test1.PNG}
+    \caption{حالت آزمایشی -- بارگذاری موازی با ۷۴۹۵}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{221test1.PNG}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{221test2.PNG}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{221test3.PNG}
+        \caption{}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{221test4.PNG}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{221test5.PNG}
+        \caption{}
+    \end{subfigure}
+
+    \caption{حالت آزمایشی -- شیفت سریال با ۷۴۹۵}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-test-mode=1.PNG}
+    \caption{حالت آزمایشی -- بارگذاری موازی با \lr{Mode = 1} در تراشه‌ی ۷۴۹۵}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-test-mode=0-1.PNG}
+    \caption{حالت آزمایشی -- شیفت سریال به راست با \lr{Mode = 0}، پس از ضربه‌ی اول کلاک}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\linewidth]{2-1-test-mode=0-2.PNG}
+    \caption{حالت آزمایشی -- شیفت سریال به راست با \lr{Mode = 0}، پس از ضربه‌ی دوم کلاک}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-0001.PNG}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-0010.PNG}
+    \end{subfigure}
+
+    \vspace{0.5cm}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-1110.PNG}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-1101.PNG}
+    \end{subfigure}
+
+    \caption{تشخیص موفق رشته‌ها با مدار}
+    \label{fig:successful_detection}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-notTrue1.PNG}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{222-notTrue2.PNG}
+    \end{subfigure}
+    \caption{عدم فعال شدن خروجی برای رشته‌ای خارج از لیست هدف}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{2-2-test1.PNG}
+    \caption{حالت آزمایشی -- تشخیص موفق رشته‌ی هدف، خروجی مدار برابر یک}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{2-2-test2.PNG}
+    \caption{حالت آزمایشی -- عدم تشخیص رشته‌ی خارج از لیست هدف، خروجی مدار برابر صفر}
+\end{figure}
+
+\section{نتیجه‌گیری}
+در این آزمایش یاد گرفتیم که یک شیفت‌رجیستر را هم می‌شود از صفر با فلیپ‌فلاپ‌های \lr{D} و چند گیت \lr{AND/OR} ساخت و هم از تراشه‌ی آماده‌ی ۷۴۹۵ استفاده کرد؛ روش اول کمک کرد بفهمیم دقیقاً چطور سیگنال \lr{Mode} بین بارگذاری موازی و شیفت سریال سوییچ می‌کند و جهت شیفت (راست یا چپ) با تغییر مسیر سیم‌کشی بین طبقات چطور عوض می‌شود، در حالی که تراشه‌ی ۷۴۹۵ همین کار را با سیم‌کشی خیلی کمتری انجام می‌داد. نتایج تست‌ها هم بارگذاری مقدار ۱۰۱۰ و هم شیفت به هر دو جهت را درست نشان دادند، هرچند برای رسیدن به شیفت دوطرفه مجبور شدیم قابلیت بارگذاری موازی را کنار بگذاریم. در بخش پایانی هم با ترکیب رجیستر ۷۴۹۵ و یک مدار مقایسه‌گر ساده از گیت‌های \lr{XOR}، \lr{NOT} و \lr{AND}، توانستیم رشته‌های ۱۱۰۱، ۱۱۱۰، ۰۰۱۰ و ۰۰۰۱ را در جریان بیت‌های سریال تشخیص بدهیم و تست‌ها نشان داد خروجی فقط دقیقاً همان لحظه‌های تطابق فعال می‌شود؛ 
+\end{document}

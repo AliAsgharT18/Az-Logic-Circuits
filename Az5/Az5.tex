@@ -1,0 +1,639 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{geometry}
+\geometry{a4paper, top=2.7cm, bottom=2.7cm, left=2.3cm, right=2.3cm}
+
+\usepackage{graphicx}
+\graphicspath{{./}{pics/}}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+
+\usepackage{xepersian}
+
+\definecolor{headerbgA}{RGB}{47, 85, 151}
+\definecolor{rowlightA}{RGB}{237, 242, 250}
+\definecolor{headerbgB}{RGB}{40,60,90}
+\definecolor{rowlightB}{RGB}{235,240,247}
+
+\IfFontExistsTF{XB Niloofar}
+  {\settextfont[Scale=1.0]{XB Niloofar}}
+  {\settextfont[Scale=1.0]{Amiri}}
+
+\IfFontExistsTF{Times New Roman}
+  {\setlatintextfont{Times New Roman}}
+  {\setlatintextfont{Latin Modern Roman}}
+
+\IfFontExistsTF{XB Niloofar}
+  {\setdigitfont{XB Niloofar}}
+  {}
+
+\linespread{1.35}
+\setlength{\parskip}{4pt}
+
+\newcommand{\en}[1]{\lr{#1}}
+
+\captionsetup{font=footnotesize,labelfont=bf}
+
+\title{}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\vspace*{2cm}
+
+\vspace{2cm}
+
+{\huge \textbf{گزارش آزمایشگاه مدارهای منطقی}}
+
+\vspace{0.6cm}
+
+{\LARGE \textbf{آزمایش پنجم: واحد محاسبات و منطق}\ \lr{(ALU)}}
+
+\vspace{2.2cm}
+
+{\Large علی‌اصغر طایری -- \lr{404171133}}
+
+\vspace{0.3cm}
+
+{\Large رضا حضرتی -- \lr{404105767}}
+
+\vfill
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\part{بخش اول: آشنایی با تراشه‌ی \lr{74181} و طراحی مدار ثبات‌ها و کنترل‌کننده}
+
+\section{مقدمه و تعریف مسئله}
+
+هدف از این آزمایش، آشنایی عملی با واحد محاسبات و منطق \lr{(Arithmetic Logic Unit - ALU)} و بررسی نحوه‌ی عملکرد تراشه‌ی معروف \lr{74181} است. این تراشه یکی از قدیمی‌ترین و شناخته‌شده‌ترین \lr{ALU}های تجاری است که قابلیت انجام عملیات محاسباتی (مانند جمع) و عملیات منطقی (مانند \lr{NOT}، \lr{AND} و غیره) را بر روی دو عملوند ۴ بیتی دارد و انتخاب نوع عملیات از طریق ورودی‌های انتخاب \lr{S3-S0} و ورودی حالت \lr{M} صورت می‌گیرد.
+
+در این آزمایش قرار است مداری طراحی و در نرم‌افزار \lr{Proteus} پیاده‌سازی شود که دارای دو ثبات داده‌ی ۴ بیتی \lr{A} و \lr{B} و یک واحد \lr{ALU} است. مقدار این دو ثبات از طریق دو مالتی‌پلکسر قابل انتخاب است تا هم بتوان مقدار جدیدی از خطوط ورودی \lr{D0-D3} در آن‌ها بارگذاری کرد و هم بتوان خروجی \lr{ALU} را مجدداً به یکی از ثبات‌ها بازگرداند (\lr{feedback}). یک مدار کنترل‌کننده (\lr{Controller}) نیز بر اساس سه ورودی دستور \lr{M0-M2} مشخص می‌کند که در هر لحظه چه عملیاتی روی محتوای ثبات‌ها انجام شود.
+
+جدول عملیات موردنظر که مبنای طراحی کنترل‌کننده قرار گرفته، در جدول \ref{tab:ops} آمده است.
+
+\begin{table}[H]
+\centering
+\caption{عملیات صورت‌گرفته در مدار برحسب ورودی‌های \lr{M2-M0}}
+\label{tab:ops}
+\renewcommand{\arraystretch}{1.4}
+\rowcolors{2}{rowlightA}{white}
+\begin{tabular}{>{\centering\arraybackslash}p{1cm} >{\centering\arraybackslash}p{1cm} >{\centering\arraybackslash}p{1cm} | >{\centering\arraybackslash}p{4cm}}
+\toprule
+\rowcolor{headerbgA}
+\textcolor{white}{\lr{M2}} & \textcolor{white}{\lr{M1}} & \textcolor{white}{\lr{M0}} & \textcolor{white}{عملیات} \\
+\midrule
+0 & 0 & 0 & \lr{$A \leftarrow D_3D_2D_1D_0$} \\
+0 & 0 & 1 & \lr{$B \leftarrow D_3D_2D_1D_0$} \\
+0 & 1 & 0 & \lr{$A \leftarrow A$} \\
+0 & 1 & 1 & \lr{$A \leftarrow B$} \\
+1 & 0 & 0 & \lr{$clear(A)$} \\
+1 & 0 & 1 & \lr{$A \leftarrow not(A)$} \\
+1 & 1 & 0 & \lr{$A \leftarrow and(A,B)$} \\
+1 & 1 & 1 & \lr{$A \leftarrow add(A,B)$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+مسئله‌ی اصلی این آزمایش، طراحی بلوک کنترل‌کننده‌ای است که با دریافت سه بیت \lr{M2-M0}، سیگنال‌های انتخاب مالتی‌پلکسرها (\lr{SA} و \lr{SB}) و سیگنال‌های انتخاب تابع \lr{ALU} (یعنی \lr{S3-S0} و ورودی \lr{M}) را به‌گونه‌ای تولید کند که هشت عملیات جدول بالا به‌درستی روی ثبات‌های \lr{A} و \lr{B} اعمال شوند.
+
+\section{بررسی و انتخاب روش طراحی}
+
+برای پیاده‌سازی این مدار، از سه تراشه‌ی اصلی زیر استفاده شد:
+
+\begin{itemize}
+\item \lr{IC 74181}: واحد محاسبات و منطق ۴ بیتی که عملیات محاسباتی و منطقی مورد نیاز جدول \ref{tab:ops} را انجام می‌دهد.
+\item \lr{IC 74175}: چهار فلیپ‌فلاپ \lr{D} در یک بسته، که برای ساخت دو ثبات ۴ بیتی \lr{A} و \lr{B} از دو عدد از این تراشه استفاده شد.
+\item \lr{IC 74157}: مالتی‌پلکسر چهارگانه‌ی ۲ به ۱، که برای انتخاب ورودی هر ثبات (بین داده‌ی خارجی و مقدار بازخوردی) به کار رفت.
+\end{itemize}
+
+با بررسی جدول تابع \lr{74181} (که در دیتاشیت این تراشه موجود است)، مشخص شد برای تولید هر یک از توابع موردنیاز، ترکیب مشخصی از ورودی حالت \lr{M} و ورودی‌های انتخاب \lr{S3S2S1S0} لازم است. جدول \ref{tab:alu-func} این نگاشت را نشان می‌دهد.
+
+\begin{table}[H]
+\centering
+\caption{کدهای انتخاب \lr{ALU} برای توابع مورد نیاز (طبق دیتاشیت \lr{74181})}
+\label{tab:alu-func}
+\renewcommand{\arraystretch}{1.4}
+\rowcolors{2}{rowlightA}{white}
+\begin{tabular}{>{\centering\arraybackslash}p{3.5cm} >{\centering\arraybackslash}p{0.8cm} >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{0.8cm} >{\centering\arraybackslash}p{2.8cm}}
+\toprule
+\rowcolor{headerbgA}
+\textcolor{white}{تابع موردنیاز} & \textcolor{white}{\lr{M}} & \textcolor{white}{\lr{S3S2S1S0}} & \textcolor{white}{\lr{Cn}} & \textcolor{white}{توضیح} \\
+\midrule
+\lr{$F=A$} (نگه‌داری \lr{A}) & 1 & 1111 & - & عبور منطقی \lr{A} \\
+\lr{$F=B$} (انتقال \lr{B} به \lr{A}) & 1 & 1010 & - & عبور منطقی \lr{B} \\
+\lr{$F=0$} (\lr{clear}) & 1 & 0011 & - & صفر منطقی \\
+\lr{$F=\overline{A}$} (\lr{not}) & 1 & 0000 & - & \lr{NOT A} \\
+\lr{$F=A \cdot B$} (\lr{and}) & 1 & 1011 & - & \lr{AND} منطقی \\
+\lr{$F=A+B$} (\lr{add}) & 0 & 1001 & 1 & جمع محاسباتی \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+با توجه به این جدول، روش طراحی انتخاب‌شده به این صورت است: کنترل‌کننده یک مدار ترکیبی (کدکننده) است که ورودی سه‌بیتی \lr{M2-M0} را به خروجی‌های \lr{SA}، \lr{SB} و \lr{S3-S0} (به‌همراه ورودی \lr{M} و \lr{Cn} تراشه‌ی \lr{ALU}) ترجمه می‌کند. از آنجا که تعداد حالت‌های ورودی محدود (۸ حالت) و خروجی‌ها نیز مشخص هستند، ساده‌ترین و قابل‌اطمینان‌ترین روش، استخراج مستقیم جدول درستی کنترل‌کننده از روی جدول \ref{tab:ops} و \ref{tab:alu-func} و سپس پیاده‌سازی آن با گیت‌های منطقی پایه (\lr{AND}، \lr{OR}، \lr{NOT}) بود؛ این روش نسبت به استفاده از \lr{ROM} یا حافظه، برای مداری با این حجم محدود، از نظر تعداد قطعات و سادگی سیم‌کشی در \lr{Proteus} به‌صرفه‌تر تشخیص داده شد.
+
+\section{بلوک‌دیاگرام طرح پیشنهادی اولیه}
+
+بلوک‌دیاگرام کلی مدار پیشنهادی، مطابق شکل داده‌شده در راهنمای آزمایش، شامل دو مالتی‌پلکسر ۴ بیتی در ورودی دو ثبات \lr{A} و \lr{B}، خود دو ثبات \lr{A} و \lr{B}، واحد \lr{ALU} و بلوک کنترل‌کننده است.
+
+\begin{itemize}
+\item مالتی‌پلکسر \lr{A}: بین خطوط ورودی خارجی \lr{D3-D0} و خروجی \lr{F} تراشه‌ی \lr{ALU} (بازخورد) یکی را، بسته به \lr{SA}، انتخاب کرده و به ورودی ثبات \lr{A} می‌دهد.
+\item مالتی‌پلکسر \lr{B}: بین خطوط ورودی خارجی \lr{D3-D0} و خروجی خودِ ثبات \lr{B} (برای حفظ مقدار فعلی در حالت‌هایی که \lr{B} نباید تغییر کند)، بسته به \lr{SB}، یکی را انتخاب کرده و به ورودی ثبات \lr{B} می‌دهد.
+\item ثبات‌های \lr{A} و \lr{B}: با یک پالس ساعت مشترک (\lr{clock}) در هر لبه‌ی ساعت، مقدار ورودی مالتی‌پلکسر مربوط به خود را ذخیره می‌کنند.
+\item واحد \lr{ALU}: مقادیر ذخیره‌شده در \lr{A} و \lr{B} را دریافت کرده و بسته به \lr{S3-S0} و \lr{M}، خروجی \lr{F} را تولید می‌کند.
+\item کنترل‌کننده: با دریافت \lr{M2-M0}، سیگنال‌های \lr{SA}، \lr{SB} و \lr{S3-S0} را طبق جدول \ref{tab:controller} تولید می‌کند.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{جدول درستی کنترل‌کننده}
+\label{tab:controller}
+\renewcommand{\arraystretch}{1.4}
+\rowcolors{2}{rowlightA}{white}
+\begin{tabular}{>{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} | >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} | >{\centering\arraybackslash}p{0.7cm} | >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm}}
+\toprule
+\rowcolor{headerbgA}
+\textcolor{white}{\lr{M2}} & \textcolor{white}{\lr{M1}} & \textcolor{white}{\lr{M0}} & \textcolor{white}{\lr{SA}} & \textcolor{white}{\lr{SB}} & \textcolor{white}{\lr{M}} & \textcolor{white}{\lr{S3}} & \textcolor{white}{\lr{S2}} & \textcolor{white}{\lr{S1}} & \textcolor{white}{\lr{S0}} \\
+\midrule
+0 & 0 & 0 & 0 & 1 & \lr{X} & \lr{X} & \lr{X} & \lr{X} & \lr{X} \\
+0 & 0 & 1 & \lr{X} & 0 & \lr{X} & \lr{X} & \lr{X} & \lr{X} & \lr{X} \\
+0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 \\
+0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 \\
+1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 \\
+1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 \\
+1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 \\
+1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent در سطرهای اول و دوم که ثبات مقصد فقط بارگذاری از ورودی خارجی است، سایر خروجی‌ها اهمیتی ندارند و در جدول با \lr{X} (بی‌اهمیت) نشان داده شده‌اند.
+
+شکل \ref{fig:main} بلوک‌دیاگرام کلی و شماتیک نهایی پیاده‌سازی‌شده در \lr{Proteus} را نشان می‌دهد.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{5-1-main.png}
+\caption{شماتیک کلی مدار پیاده‌سازی‌شده در \lr{Proteus}}
+\label{fig:main}
+\end{figure}
+
+\section{روند پیاده‌سازی}
+
+پیاده‌سازی مدار طی مراحل زیر انجام شد:
+
+\begin{enumerate}
+\item ابتدا دو ثبات \lr{A} و \lr{B} با استفاده از دو تراشه‌ی \lr{74175} ساخته شدند. ورودی ساعت \lr{(clock)} هر دو ثبات به یک کلید فشاری (\lr{push-button}) مشترک متصل شد تا با هر بار فشردن، یک لبه‌ی ساعت به هر دو ثبات اعمال شود. همچنین ورودی \lr{Reset} هر دو ثبات به یک کلید فشاری دیگر برای بازگرداندن مدار به حالت اولیه وصل گردید.
+\item در ادامه دو مالتی‌پلکسر با استفاده از تراشه‌ی \lr{74157} در مسیر ورودی هر ثبات قرار داده شدند تا امکان انتخاب بین داده‌ی خارجی و مقدار بازخوردی فراهم شود.
+\item سپس تراشه‌ی \lr{74181} به‌عنوان \lr{ALU} به خروجی ثبات‌های \lr{A} و \lr{B} متصل شد و خروجی \lr{F} آن هم به‌عنوان خروجی نهایی مدار (\lr{F}) و هم به‌صورت بازخورد به مالتی‌پلکسر ورودی ثبات \lr{A} وصل گردید.
+\item در نهایت، مدار کنترل‌کننده بر اساس جدول درستی \ref{tab:controller} با گیت‌های منطقی پایه پیاده‌سازی و به ورودی‌های \lr{SA}، \lr{SB}، \lr{S3-S0} و \lr{M} متصل شد. سه کلید (یا سوییچ) نیز برای اعمال دستی مقادیر \lr{M2-M0} در نظر گرفته شد.
+\item پس از اتمام سیم‌کشی، برای هر یک از هشت حالت جدول \ref{tab:ops}، مقادیر \lr{M2-M0} به‌صورت دستی تنظیم و پس از اعمال چند مقدار نمونه در ورودی‌های \lr{D0-D3} و فشردن کلید ساعت، صحت مقدار ذخیره‌شده در ثبات‌ها و خروجی \lr{ALU} با استفاده از پروب‌های ولتاژ (\lr{voltage probe}) در \lr{Proteus} بررسی شد.
+\end{enumerate}
+
+در حین پیاده‌سازی، مهم‌ترین نکته‌ی موردتوجه، هم‌زمانی صحیح سیگنال‌های انتخاب (\lr{SA}، \lr{SB} و \lr{S3-S0}) با لبه‌ی ساعت بود؛ زیرا این سیگنال‌ها باید پیش از رسیدن لبه‌ی ساعت به ثبات‌ها، در مالتی‌پلکسرها اعمال شده باشند تا مقدار درستی وارد ثبات شود.
+
+\section{دیاگرام یا شماتیک طرح اولیه}
+
+طرح اولیه‌ی پیشنهادی، همان ساختار بلوک‌دیاگرام ارائه‌شده در راهنمای آزمایش بود: دو مالتی‌پلکسر ۴ بیتی در ورودی ثبات‌های \lr{A} و \lr{B}، خود دو ثبات \lr{A} و \lr{B}، واحد \lr{ALU} و بلوک کنترل‌کننده، بدون تعیین جزئیات داخلی گیت‌های کنترل‌کننده. در این مرحله صرفاً اتصالات کلی بین بلوک‌ها (مسیر داده‌ی خارجی \lr{D3-D0}، مسیر بازخورد از خروجی \lr{ALU} به مالتی‌پلکسر \lr{A}، و اتصال ثبات‌ها به ورودی‌های \lr{ALU}) مشخص شده بود و طراحی داخلی مدار کنترل‌کننده (یعنی گیت‌هایی که \lr{SA}، \lr{SB} و \lr{S3-S0} را تولید می‌کنند) در مرحله‌ی بعد، بر اساس جدول \ref{tab:controller}، تکمیل شد. این ساختار کلی همان چیزی است که در شکل \ref{fig:main} (شماتیک نهایی پیاده‌سازی‌شده) نیز قابل مشاهده است، با این تفاوت که در آن شکل، مدار کنترل‌کننده به‌طور کامل سیم‌کشی و پیاده‌سازی شده است.
+
+\section{دیاگرام طرح نهایی}
+
+پس از پیاده‌سازی اولیه، در حین تست مدار، ساختار کلی طرح (تعداد و نوع مالتی‌پلکسرها، ثبات‌ها و \lr{ALU}) بدون تغییر باقی ماند و صرفاً جزئیات داخلی مدار کنترل‌کننده (یعنی گیت‌های تولیدکننده‌ی \lr{SA}، \lr{SB} و \lr{S3-S0} طبق جدول \ref{tab:controller}) تکمیل و سیم‌کشی نهایی شد. به‌عبارت دیگر، طرح نهایی از نظر بلوک‌دیاگرام کلی با طرح اولیه یکسان است و تغییری در معماری کلی مدار اعمال نشده است؛ شماتیک نهایی همان شکل \ref{fig:main} است.
+
+\section{بررسی \lr{Test Case} ها}
+
+پس از تکمیل پیاده‌سازی، مدار برای تمامی هشت حالت ممکن ورودی \lr{M2-M0} (طبق جدول \ref{tab:ops}) آزمایش شد. برای هر حالت، مقادیر مناسبی در ورودی‌های \lr{D0-D3} اعمال و با فشردن کلید ساعت، نتیجه در خروجی ثبات‌ها و پروب‌های \lr{ALU} بررسی گردید. در حالت‌های \lr{101}، \lr{110} و \lr{111} که عملیات آن‌ها به مقدار اولیه‌ی هر دو ثبات \lr{A} و \lr{B} وابسته است، دو نمونه‌ی متفاوت آزمایش شد تا صحت عملکرد برای چند ورودی مختلف تأیید شود.
+
+\subsection*{حالت \lr{$M2M1M0 = 000$}: \lr{$A \leftarrow D_3D_2D_1D_0$}}
+در این حالت مقدار اعمال‌شده در خطوط \lr{D0-D3} پس از فشردن کلید ساعت، مستقیماً در ثبات \lr{A} ذخیره شد؛ همان‌طور که در شکل \ref{fig:t000} قابل مشاهده است.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{5-1-test-000.PNG}
+\caption{نتیجه‌ی تست حالت \lr{000}}
+\label{fig:t000}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 001$}: \lr{$B \leftarrow D_3D_2D_1D_0$}}
+در این حالت مقدار خطوط \lr{D0-D3} در ثبات \lr{B} بارگذاری شد و ثبات \lr{A} بدون تغییر باقی ماند (شکل \ref{fig:t001}).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{5-1-test-001.PNG}
+\caption{نتیجه‌ی تست حالت \lr{001}}
+\label{fig:t001}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 010$}: \lr{$A \leftarrow A$}}
+در این حالت مقدار ثبات \lr{A} بدون تغییر باقی ماند و پس از فشردن کلید ساعت نیز همان مقدار قبلی در \lr{A} حفظ شد (شکل \ref{fig:t010}).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{5-1-test-010.PNG}
+\caption{نتیجه‌ی تست حالت \lr{010}}
+\label{fig:t010}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 011$}: \lr{$A \leftarrow B$}}
+مقدار ذخیره‌شده در ثبات \lr{B} در این حالت به ثبات \lr{A} منتقل شد (شکل \ref{fig:t011}).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{5-1-test-011.PNG}
+\caption{نتیجه‌ی تست حالت \lr{011}}
+\label{fig:t011}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 100$}: \lr{$clear(A)$}}
+در این حالت با فشردن کلید ساعت، ثبات \lr{A} صفر شد (شکل \ref{fig:t100}).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{5-1-test-100.PNG}
+\caption{نتیجه‌ی تست حالت \lr{100}}
+\label{fig:t100}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 101$}: \lr{$A \leftarrow not(A)$}}
+مقدار متمم ثبات \lr{A} در آن ذخیره شد. این حالت برای دو مقدار اولیه‌ی متفاوت آزمایش شد (شکل \ref{fig:t101}).
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-101-1.PNG}
+\caption{نمونه‌ی اول}
+\label{fig:t101-1}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-101-2.PNG}
+\caption{نمونه‌ی دوم}
+\label{fig:t101-2}
+\end{subfigure}
+\caption{نتیجه‌ی تست حالت \lr{101}}
+\label{fig:t101}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 110$}: \lr{$A \leftarrow and(A,B)$}}
+حاصل \lr{AND} منطقی بین \lr{A} و \lr{B} در ثبات \lr{A} ذخیره شد. این حالت نیز برای دو نمونه‌ی مختلف بررسی شد (شکل \ref{fig:t110}).
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-110-1.PNG}
+\caption{نمونه‌ی اول}
+\label{fig:t110-1}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-110-2.PNG}
+\caption{نمونه‌ی دوم}
+\label{fig:t110-2}
+\end{subfigure}
+\caption{نتیجه‌ی تست حالت \lr{110}}
+\label{fig:t110}
+\end{figure}
+
+\subsection*{حالت \lr{$M2M1M0 = 111$}: \lr{$A \leftarrow add(A,B)$}}
+حاصل جمع محاسباتی \lr{A} و \lr{B} در ثبات \lr{A} ذخیره شد. این حالت نیز برای دو نمونه‌ی ورودی مختلف، ازجمله بررسی تولید یا عدم تولید رقم نقلی، آزمایش شد (شکل \ref{fig:t111}).
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-111-1.PNG}
+\caption{نمونه‌ی اول}
+\label{fig:t111-1}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{5-1-test-111-2.PNG}
+\caption{نمونه‌ی دوم}
+\label{fig:t111-2}
+\end{subfigure}
+\caption{نتیجه‌ی تست حالت \lr{111}}
+\label{fig:t111}
+\end{figure}
+
+نتایج به‌دست‌آمده از تمامی هشت حالت فوق، کاملاً منطبق بر جدول عملیات \ref{tab:ops} بود و هیچ‌گونه ناسازگاری‌ای بین رفتار موردانتظار و رفتار مشاهده‌شده در شبیه‌سازی \lr{Proteus} مشاهده نشد.
+
+\section{نتیجه‌گیری}
+
+در این آزمایش، با ساخت و شبیه‌سازی مداری شامل تراشه‌ی \lr{74181} (\lr{ALU})، دو تراشه‌ی \lr{74175} (ثبات) و دو تراشه‌ی \lr{74157} (مالتی‌پلکسر)، نحوه‌ی کنترل عملیات محاسباتی و منطقی روی دو ثبات به‌صورت عملی بررسی شد. مهم‌ترین نکته‌ی آموخته‌شده، اهمیت طراحی صحیح مدار کنترل‌کننده برای تبدیل یک کد دستور کوتاه (سه‌بیتی) به سیگنال‌های انتخاب مناسب \lr{ALU} و مالتی‌پلکسرهاست؛ این ساختار در واقع نمونه‌ای ساده از معماری بخش کنترل و مسیر داده (\lr{control unit} و \lr{datapath}) در پردازنده‌های واقعی است.
+
+آزمایش تمامی هشت حالت جدول عملیات نشان داد که مدار طراحی‌شده به‌درستی و مطابق انتظار عمل می‌کند و خروجی‌های به‌دست‌آمده در تمام موارد با مقادیر پیش‌بینی‌شده مطابقت دارد. این آزمایش درک بهتری از کاربرد عملی تراشه‌ی \lr{74181} به‌عنوان یک واحد محاسبات و منطق کلاسیک، و نیز نحوه‌ی طراحی مدارهای کنترل‌کننده‌ی ترکیبی برای سیستم‌های دیجیتال کوچک فراهم کرد.
+
+\newpage
+\part{بخش دوم: طراحی \lr{ALU} چهاربیتی با تراشه‌های \lr{TTL} پایه}
+
+\section{مقدمه و تعریف مسئله}
+
+هدف از آزمایش پنجم، آشنایی عملی با نحوه‌ی طراحی و پیاده‌سازی یک \textbf{واحد محاسبات و منطق} (\en{Arithmetic Logic Unit} یا به‌اختصار \en{ALU}) است. \en{ALU} یکی از اصلی‌ترین اجزای هر واحد پردازش دیجیتال (مانند پردازنده‌های مرکزی) محسوب می‌شود که وظیفه‌ی انجام عملیات حسابی (جمع، تفریق، افزایش، کاهش و مانند آن) و عملیات منطقی (\en{AND}،‌ \en{OR}، \en{XOR} و متمم) و همچنین عملیات جابه‌جایی بیت‌ها (شیفت) را بر عهده دارد. تمامی مراحل طراحی، شبیه‌سازی و آزمایش این مدار با استفاده از نرم‌افزار \en{Proteus} انجام شده است.
+
+مسئله‌ای که در این آزمایش باید حل شود به این صورت تعریف می‌شود: یک \en{ALU} چهار‌بیتی طراحی و پیاده‌سازی شود که دارای ورودی‌های زیر باشد:
+
+\begin{itemize}[itemsep=2pt]
+    \item دو عملوند چهاربیتی \en{A (A0-A3)} و \en{B (B0-B3)}
+    \item یک ورودی کری \en{Cin}
+    \item چهار خط انتخاب عملیات \en{Select (S0-S3)}
+\end{itemize}
+
+و دارای خروجی‌های زیر باشد:
+
+\begin{itemize}[itemsep=2pt]
+    \item یک خروجی چهاربیتی \en{F (F0-F3)}
+    \item یک خروجی کری خروجی \en{Cout}
+\end{itemize}
+
+با توجه به مقدار خطوط انتخاب \en{S3 S2 S1 S0} و ورودی \en{Cin}، مدار باید یکی از چهارده عملیات مشخص‌شده در جدول عملکرد (جدول \ref{tab:optable}) را روی عملوندهای ورودی اجرا کرده و نتیجه را در خروجی \en{F} (و در حالت عملیات حسابی، کری خروجی را در \en{Cout}) قرار دهد. در پایان آزمایش نیز باید صحت عملکرد مدار برای تمامی حالت‌های ممکنِ خط انتخاب، توسط ابزار \en{Logic Probe} در محیط \en{Proteus} بررسی و مستند شود.
+
+\section{بررسی و انتخاب روش طراحی}
+
+برای ساخت مدار داخلی یک \en{ALU} (که یک واحد محاسبات و منطق است) به‌جای طراحی مدار کاملاً سفارشی از دروازه‌های منطقی پایه، از رویکرد \textbf{استفاده از تراشه‌های \en{TTL} آماده} بهره گرفته شده است؛ چراکه این روش هم پیاده‌سازی را ساده‌تر می‌کند و هم با تجهیزات آزمایشگاهی و کتابخانه‌ی \en{Proteus} سازگاری کامل دارد. اجزای اصلی به‌کاررفته عبارت‌اند از:
+
+\begin{itemize}[itemsep=2pt]
+    \item یک تراشه \en{74283} (جمع‌کننده‌ی کامل چهاربیتی) به‌عنوان هسته‌ی محاسباتیِ جمع/تفریق؛
+    \item شش تراشه \en{74153} (مالتی‌پلکسر دوگانه‌ی چهار‌به‌یک) برای انتخاب عملوندها و ترکیب نتایج بخش‌های مختلف؛
+    \item دروازه‌های \en{7408} (\en{AND})، \en{7432} (\en{OR})، \en{74LS86} (\en{XOR}) و \en{7404} (\en{NOT}) به تعداد کافی برای پیاده‌سازی واحد منطقی و تولید سیگنال‌های کمکی (مانند \lr{$\overline{B}$} و \lr{$\overline{A}$}).
+\end{itemize}
+
+دلیل انتخاب این روش آن است که تراشه‌ی \en{74283} به‌طور مستقیم عملیات جمع چهاربیتی همراه با کری ورودی/خروجی را انجام می‌دهد و با تغذیه‌ی مناسب ورودی دوم آن (به‌جای \en{B} ساده) می‌توان تمامی هشت عملیات حسابی جدول را -- بدون نیاز به مدار جمع/تفریق‌کننده‌ی جداگانه -- تنها با انتخاب مقدار مناسب برای این ورودی (توسط مالتی‌پلکسر) پیاده‌سازی کرد. همچنین استفاده از مالتی‌پلکسرهای \en{74153} در سطوح بعدی، امکان می‌دهد که سه بخشِ مستقل مدار (حسابی، منطقی و شیفت) به‌صورت جداگانه طراحی شوند و در نهایت با یک لایه‌ی انتخابِ نهایی، بر اساس خطوط \en{S3} و \en{S2}، خروجی مناسب انتخاب گردد. این تفکیک، طراحی، اشکال‌زدایی و سیم‌کشی مدار را به‌مراتب ساده‌تر از یک پیاده‌سازی یکپارچه می‌کند.
+
+به‌طور کلی مدار به سه بخش اصلی تقسیم می‌شود:
+
+\begin{enumerate}[itemsep=2pt]
+    \item واحد جمع و تفریق‌کننده (عملیات حسابی)
+    \item واحد منطق پایه (\en{AND}، \en{OR}، \en{XOR}، متمم)
+    \item واحد شیفت به راست و چپ
+\end{enumerate}
+
+که خروجی هر یک از این سه بخش، به‌همراه سیگنال‌های انتخاب \en{S3} و \en{S2}، به مالتی‌پلکسرهای نهایی داده می‌شود تا در نهایت یکی از آن‌ها به‌عنوان خروجی \en{F} انتخاب شود. جزئیات کامل هر بخش در قسمت «روند پیاده‌سازی» آمده است.
+
+\section{طرح پیشنهادی اولیه}
+
+پیش از ورود به جزئیات مدار و سیم‌کشی نهایی، ساختار کلی سیستم به‌صورت مفهومی و بر پایه‌ی تحلیل نظری تعریف شد. طبق این طرح اولیه، \en{ALU} چهاربیتی باید دارای دو ورودی عملوند چهاربیتی \en{A} و \en{B}، یک ورودی کری \en{Cin} و یک ورودی انتخاب چهاربیتی \en{Select} باشد و در خروجی، نتیجه‌ی چهاربیتی \en{F} به‌همراه کری خروجی \en{Cout} تولید کند. از آنجا که در این مرحله صرفاً ساختار کلی و تقسیم‌بندی وظایف مدار مشخص می‌شد -- و نه جزئیات سیم‌کشی یا چیدمان قطعات در محیط \en{Proteus} -- هیچ شماتیک یا بلوک‌دیاگرام تصویری از این مرحله تهیه نشده است؛ آنچه در ادامه می‌آید، شرح متنی همین طرح مفهومی اولیه است.
+
+بر اساس این تحلیل اولیه، مقرر شد مدار داخلی \en{ALU} به سه زیرواحدِ مستقل تقسیم شود:
+
+\begin{enumerate}[itemsep=2pt]
+    \item زیرواحد حسابی، مسئول انجام هشت عملیات جمع، تفریق، افزایش و کاهش؛
+    \item زیرواحد منطقی، مسئول انجام چهار عملیات \en{AND}، \en{OR}، \en{XOR} و متمم؛
+    \item زیرواحد شیفت، مسئول جابه‌جایی بیت‌های \en{A} به راست یا چپ.
+\end{enumerate}
+
+و در نهایت، خروجی هر یک از این سه زیرواحد، توسط یک لایه‌ی مالتی‌پلکسرِ انتخاب نهایی -- بر اساس مقدار خطوط \en{S3} و \en{S2} -- به‌عنوان خروجی \en{F} مدار انتخاب گردد. این تقسیم‌بندی مفهومی، مبنای طراحی و سیم‌کشی مدار در بخش «روند پیاده‌سازی» قرار گرفت.
+
+جدول عملکرد کامل که مبنای طراحی این آزمایش قرار گرفته، در جدول \ref{tab:optable} آمده است. همان‌طور که دیده می‌شود، ترکیب خطوط انتخاب \en{S3 S2} تعیین می‌کند که مدار در کدام‌یک از سه حالت (حسابی، منطقی یا شیفت) قرار گیرد و در ادامه، \en{S1 S0} (و در حالت حسابی، \en{Cin} نیز) عملیات دقیق درون آن حالت را مشخص می‌کنند.
+
+\begin{table}[H]
+\centering
+\caption{جدول عملکرد \en{ALU} چهاربیتی (مبنای طراحی)}
+\label{tab:optable}
+\renewcommand{\arraystretch}{1.4}
+\rowcolors{2}{rowlightB}{white}
+\begin{tabular}{>{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.7cm} >{\centering\arraybackslash}p{0.9cm} | >{\centering\arraybackslash}p{3.4cm} >{\centering\arraybackslash}p{3cm}}
+\toprule
+\rowcolor{headerbgB}
+\textcolor{white}{\lr{$S_3$}} & \textcolor{white}{\lr{$S_2$}} & \textcolor{white}{\lr{$S_1$}} & \textcolor{white}{\lr{$S_0$}} & \textcolor{white}{\lr{$C_{in}$}} & \textcolor{white}{عملیات} & \textcolor{white}{توضیح} \\
+\midrule
+\en{0} & \en{0} & \en{0} & \en{0} & \en{0} & \en{$F = A$}                     & انتقال \en{A} \\
+\en{0} & \en{0} & \en{0} & \en{0} & \en{1} & \en{$F = A + 1$}                 & افزایش (اینکریمنت) \en{A} \\
+\en{0} & \en{0} & \en{0} & \en{1} & \en{0} & \en{$F = A + B$}                 & جمع \\
+\en{0} & \en{0} & \en{0} & \en{1} & \en{1} & \en{$F = A + B + 1$}             & جمع با کری \\
+\en{0} & \en{0} & \en{1} & \en{0} & \en{0} & \en{$F = A + \overline{B}$}      & تفریق با قرض \\
+\en{0} & \en{0} & \en{1} & \en{0} & \en{1} & \en{$F = A + \overline{B} + 1$}  & تفریق \\
+\en{0} & \en{0} & \en{1} & \en{1} & \en{0} & \en{$F = A - 1$}                 & کاهش (دیکرمنت) \en{A} \\
+\en{0} & \en{0} & \en{1} & \en{1} & \en{1} & \en{$F = A$}                     & انتقال \en{A} \\
+\en{0} & \en{1} & \en{0} & \en{0} & \en{$\times$} & \en{$F = A \wedge B$}     & \en{AND} \\
+\en{0} & \en{1} & \en{0} & \en{1} & \en{$\times$} & \en{$F = A \vee B$}       & \en{OR} \\
+\en{0} & \en{1} & \en{1} & \en{0} & \en{$\times$} & \en{$F = A \oplus B$}     & \en{XOR} \\
+\en{0} & \en{1} & \en{1} & \en{1} & \en{$\times$} & \en{$F = \overline{A}$}   & متمم \en{A} \\
+\en{1} & \en{0} & \en{$\times$} & \en{$\times$} & \en{$\times$} & \en{$F = \mathrm{shr}\ A$} & شیفت به راستِ \en{A} در \en{F} \\
+\en{1} & \en{1} & \en{$\times$} & \en{$\times$} & \en{$\times$} & \en{$F = \mathrm{shl}\ A$} & شیفت به چپِ \en{A} در \en{F} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{روند پیاده‌سازی}
+
+پیاده‌سازی مدار در سه گام مطابق با تفکیک طرح اولیه انجام شد.
+
+\subsection{بخش اول: واحد جمع و تفریق‌کننده}
+
+در این بخش رابطه‌ی کلی زیر پیاده‌سازی می‌شود:
+\begin{center}
+\en{$F = A + X + C_{in}$}
+\end{center}
+که در آن \en{X} می‌تواند \en{B}، متمم \en{B} (یعنی \en{$\overline{B}$})، مقدار صفر یا مقدار یک (تمام بیت‌ها) باشد. برای انتخاب این چهار حالت از دو تراشه‌ی مالتی‌پلکسر \en{74153} استفاده شده است (از آنجا که ورودی‌ها و خروجی‌ها چهاربیتی هستند و هر تراشه‌ی \en{74153} از دو مالتی‌پلکسر چهار‌به‌یک تشکیل شده، به دو تراشه یعنی چهار واحد مالتی‌پلکسر نیاز است تا هر بیت از \en{X} به‌طور مستقل انتخاب شود).
+
+پایه‌های ورودی هر مالتی‌پلکسر به‌ترتیب به تغذیه (\en{VCC})، \en{B}، متمم \en{B} و زمین (\en{GND}) متصل شده‌اند. سپس بیت‌های \en{A0} تا \en{A3} به ورودی‌های \en{A0} تا \en{A3} تراشه‌ی \en{74283} و بیت‌های \en{B0} تا \en{B3} این تراشه به خروجی‌های چهار مالتی‌پلکسر (یعنی مقدار انتخاب‌شده‌ی \en{X}) متصل می‌شوند. پایه‌های انتخاب مالتی‌پلکسرها نیز به \en{S0} و \en{S1} وصل شده‌اند تا مطابق جدول عملکرد، یکی از چهار حالت \en{X} انتخاب شود.
+
+در خروجی تراشه‌ی جمع‌کننده، کری خروجی (\en{Cout}) مستقیماً به \en{Logic Probe} متصل می‌شود، اما خروجی‌های اصلی جمع (\en{F0} تا \en{F3}) باید به ورودی اول دو مالتی‌پلکسر نهایی (که در بخش بعد معرفی می‌شوند) داده شوند تا در انتخاب نهایی خروجی \en{F} شرکت کنند.
+
+\subsection{بخش دوم: واحد منطقی}
+
+در این بخش ابتدا چهار عملیات پایه‌ی \en{$A \wedge B$}، \en{$A \vee B$}، \en{$A \oplus B$} و \en{$\overline{A}$} با استفاده از گیت‌های \en{7408}، \en{7432}، \en{74LS86} و \en{7404} ساخته می‌شوند. سپس با استفاده از دو تراشه‌ی مالتی‌پلکسر دیگر، یکی از این چهار نتیجه انتخاب می‌شود: ورودی اول هر مالتی‌پلکسر به خروجی گیت \en{AND}، ورودی دوم به \en{OR}، ورودی سوم به \en{XOR} و ورودی چهارم به گیت \en{NOT} (متمم \en{A}) متصل است. پایه‌های انتخاب این مالتی‌پلکسرها نیز مانند بخش قبل به \en{S0} و \en{S1} وصل شده‌اند. خروجی این دو مالتی‌پلکسر به ورودی دوم مالتی‌پلکسرهای نهایی داده می‌شود.
+
+\subsection{بخش سوم: واحد شیفت}
+
+برای این بخش نیازی به گیت اضافه نیست و شیفت به‌صورت مستقیم با سیم‌کشیِ مناسب ورودی‌های \en{A} پیاده‌سازی می‌شود؛ برای شیفت به راست، بیت \en{A0} به زمین وصل شده و سایر بیت‌ها به‌ترتیب یک واحد جابه‌جا می‌شوند و به همین ترتیب برعکس، برای شیفت به چپ. این سیم‌کشی مستقیماً به ورودی سوم و چهارم مالتی‌پلکسرهای نهایی متصل می‌شود.
+
+پایه‌های انتخاب دو مالتی‌پلکسر نهایی به \en{S2} و \en{S3} وصل شده‌اند تا در نهایت یکی از چهار مسیر (حسابی، منطقی، شیفت راست، شیفت چپ) به‌عنوان خروجی \en{F} انتخاب و به \en{Logic Probe}‌های خروجی نمایش داده شود.
+
+با توجه به این‌که پس از پیاده‌سازی، طرح اولیه به‌طور کامل پاسخ‌گوی نیاز آزمایش بود، \textbf{نسخه‌ی اولیه و نهایی این مدار هیچ تفاوتی با یکدیگر نداشتند} و نیازی به هیچ تغییری در ساختار یا سیم‌کشی مدار پیش نیامد.
+
+\section{شماتیک و تصویر مدار نهایی}
+
+لازم به ذکر است که در این آزمایش، طراحی مدار مستقیماً بر پایه‌ی طرح مفهومی اولیه (بخش «طرح پیشنهادی اولیه») و جدول عملکرد جدول \ref{tab:optable} انجام شد و در همان تلاش نخست، بدون نیاز به هیچ بازبینی یا اصلاح، به‌درستی پاسخ‌گوی تمامی حالت‌ها بود؛ به‌عبارت دیگر، این مدار اساساً \textbf{مرحله یا نسخه‌ی «اولیه»ی جداگانه‌ای (متفاوت از طرح نهایی) نداشته است}. به همین دلیل هیچ تصویر یا شماتیکی از یک نسخه‌ی «اولیه» در دسترس نیست؛ آنچه در ادامه ارائه می‌شود -- هم شماتیک و هم تصویر واقعی مدار -- هر دو متعلق به همان \textbf{یک نسخه‌ی طراحی‌شده و نهایی} مدار، در محیط \en{Proteus}، هستند.
+
+شماتیک کامل مدار نهایی، شامل تراشه‌ی جمع‌کننده‌ی \en{74283}\ (با نام \en{U4})، شش مالتی‌پلکسر \en{74153}\ (\en{U1}، \en{U2}، \en{U9}، \en{U10}، \en{U11} و \en{U12})، دروازه‌های \en{AND}\ (\en{U5})، \en{OR}\ (\en{U6})، \en{XOR}\ (\en{U13} و \en{U7}) و معکوس‌کننده‌های \en{NOT}\ (\en{U3} و \en{U8})، در شکل \ref{fig:schematic} نشان داده شده است.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{main_schematic_cropped.pdf}
+    \caption{شماتیک کامل مدار نهاییِ \en{ALU} چهاربیتی در محیط \en{Proteus}}
+    \label{fig:schematic}
+\end{figure}
+
+همان‌طور که در شکل مشخص است، ورودی‌های \en{A0-A3}، \en{B0-B3}، \en{S0-S3} و \en{Cin} در سمت چپ مدار قرار دارند و خروجی‌های \en{F0-F3} و \en{Cout} در سمت راست مدار نمایش داده می‌شوند. ساختار سه‌بخشی مدار (واحد حسابی در بالا، واحد منطقی در وسط و واحد شیفت به‌صورت سیم‌کشی مستقیم به مالتی‌پلکسرهای نهایی) در این شماتیک کاملاً قابل‌مشاهده است.
+
+\section{بررسی \en{Test Case}‌ها}
+
+برای بررسی صحت عملکرد مدار، تمامی چهارده حالت جدول عملکرد (جدول \ref{tab:optable}) به‌صورت جداگانه در \en{Proteus} تحریک شدند و مقادیر \en{Logic Probe}‌های متصل به \en{F0-F3} و \en{Cout} برای هر حالت ثبت شد. نام‌گذاری فایل‌های تصویر هر \en{Test Case} بر اساس ترتیب \en{$S_3 S_2 S_1 S_0 C_{in}$} انجام شده است (علامت \en{x} به‌معنای بی‌اثر بودن آن بیت در عملیات موردنظر است). جدول \ref{tab:testcases} نگاشت میان نام هر فایل تصویر و عملیات متناظر با آن را نشان می‌دهد.
+
+\begin{table}[H]
+\centering
+\caption{نگاشت \en{Test Case}‌ها به عملیات جدول عملکرد}
+\label{tab:testcases}
+\renewcommand{\arraystretch}{1.4}
+\rowcolors{2}{rowlightB}{white}
+\begin{tabular}{>{\centering\arraybackslash}p{2.4cm} | >{\centering\arraybackslash}p{2.8cm} >{\centering\arraybackslash}p{4.5cm}}
+\toprule
+\rowcolor{headerbgB}
+\textcolor{white}{نام فایل تصویر} & \textcolor{white}{\lr{$S_3S_2S_1S_0C_{in}$}} & \textcolor{white}{عملیات} \\
+\midrule
+\en{00000} & \en{0 0 0 0 0} & \en{$F=A$} (انتقال \en{A}) \\
+\en{00001} & \en{0 0 0 0 1} & \en{$F=A+1$} (افزایش) \\
+\en{00010} & \en{0 0 0 1 0} & \en{$F=A+B$} (جمع) \\
+\en{00011} & \en{0 0 0 1 1} & \en{$F=A+B+1$} (جمع با کری) \\
+\en{00100} & \en{0 0 1 0 0} & \en{$F=A+\overline{B}$} (تفریق با قرض) \\
+\en{00101} & \en{0 0 1 0 1} & \en{$F=A+\overline{B}+1$} (تفریق) \\
+\en{00110} & \en{0 0 1 1 0} & \en{$F=A-1$} (کاهش) \\
+\en{00111} & \en{0 0 1 1 1} & \en{$F=A$} (انتقال \en{A}) \\
+\en{0100x} & \en{0 1 0 0 x} & \en{$F=A\wedge B$} (\en{AND}) \\
+\en{0101x} & \en{0 1 0 1 x} & \en{$F=A\vee B$} (\en{OR}) \\
+\en{0110x} & \en{0 1 1 0 x} & \en{$F=A\oplus B$} (\en{XOR}) \\
+\en{0111x} & \en{0 1 1 1 x} & \en{$F=\overline{A}$} (متمم \en{A}) \\
+\en{10xxx} & \en{1 0 x x x} & \en{$F=\mathrm{shr}\ A$} (شیفت راست) \\
+\en{11xxx} & \en{1 1 x x x} & \en{$F=\mathrm{shl}\ A$} (شیفت چپ) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+پیش از بررسی تک‌تک حالت‌ها، نمای کلی مدار نهاییِ پیاده‌سازی‌شده به‌همراه محل قرارگیری کلیدهای ورودی و \en{Logic Probe}‌های خروجی پیش‌تر در شکل \ref{fig:schematic} (بخش «شماتیک و تصویر مدار نهایی») نشان داده شد.
+
+\subsection{عملیات حسابی}
+
+هشت حالت اول جدول عملکرد مربوط به عملیات حسابی هستند که با \en{$S_3S_2=00$} و ترکیب‌های مختلف \en{$S_1S_0C_{in}$} فعال می‌شوند. نتایج شبیه‌سازی برای این هشت حالت در شکل‌های \ref{fig:arith1} و \ref{fig:arith2} نشان داده شده‌اند.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00000.png}
+        \caption{\en{$F=A$}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00001.png}
+        \caption{\en{$F=A+1$}}
+    \end{subfigure}
+
+    \vspace{0.4cm}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00010.png}
+        \caption{\en{$F=A+B$}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00011.png}
+        \caption{\en{$F=A+B+1$}}
+    \end{subfigure}
+    \caption{نتیجه‌ی شبیه‌سازی چهار عملیات حسابی نخست}
+    \label{fig:arith1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00100.png}
+        \caption{\en{$F=A+\overline{B}$}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00101.png}
+        \caption{\en{$F=A+\overline{B}+1$}}
+    \end{subfigure}
+
+    \vspace{0.4cm}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00110.png}
+        \caption{\en{$F=A-1$}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{00111.png}
+        \caption{\en{$F=A$}}
+    \end{subfigure}
+    \caption{نتیجه‌ی شبیه‌سازی چهار عملیات حسابی دوم}
+    \label{fig:arith2}
+\end{figure}
+
+در تمامی هشت حالت فوق، مقدار خوانده‌شده از \en{Logic Probe}‌های \en{F0-F3} با مقدار محاسبه‌شده‌ی دستی از روی جدول عملکرد یکسان بود و کری خروجی (\en{Cout}) نیز به‌درستی وضعیت سرریز جمع/تفریق را نشان می‌داد.
+
+\subsection{عملیات منطقی}
+
+چهار عملیات منطقی با \en{$S_3S_2=01$} و مقادیر مختلف \en{$S_1S_0$} فعال می‌شوند (مقدار \en{Cin} در این حالت بی‌اثر است). نتایج در شکل \ref{fig:logic} نشان داده شده‌اند.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{0100x.png}
+        \caption{\en{$F=A\wedge B$}\ (\en{AND})}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{0101x.png}
+        \caption{\en{$F=A\vee B$}\ (\en{OR})}
+    \end{subfigure}
+
+    \vspace{0.4cm}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{0110x.png}
+        \caption{\en{$F=A\oplus B$}\ (\en{XOR})}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{0111x.png}
+        \caption{\en{$F=\overline{A}$}\ (متمم)}
+    \end{subfigure}
+    \caption{نتیجه‌ی شبیه‌سازی چهار عملیات منطقی}
+    \label{fig:logic}
+\end{figure}
+
+در هر چهار حالت، خروجی \en{F} دقیقاً برابر با نتیجه‌ی منطقی موردانتظار روی عملوندهای \en{A} و \en{B} بود و همان‌طور که از جدول عملکرد انتظار می‌رفت، مقدار \en{Cout} در این حالت فاقد معنای مشخص (بی‌اثر) است.
+
+\subsection{عملیات شیفت}
+
+دو عملیات پایانی جدول، شیفت به راست و شیفت به چپ \en{A} هستند که با \en{$S_3S_2=10$} و \en{$S_3S_2=11$} به‌ترتیب فعال می‌شوند. نتایج در شکل \ref{fig:shift} آمده است.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{10xxx.png}
+        \caption{\en{$F=\mathrm{shr}\ A$}}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{11xxx.png}
+        \caption{\en{$F=\mathrm{shl}\ A$}}
+    \end{subfigure}
+    \caption{نتیجه‌ی شبیه‌سازی دو عملیات شیفت}
+    \label{fig:shift}
+\end{figure}
+
+در هر دو حالت، بیت جدیدی که از سمت آزاد وارد \en{F} می‌شود برابر با صفر بود و سایر بیت‌های \en{A} دقیقاً یک واحد به سمت مربوطه جابه‌جا شدند که کاملاً منطبق با تعریف عملیات شیفت منطقی در جدول عملکرد است.
+
+\section{نتیجه‌گیری}
+
+در این آزمایش یک واحد محاسبات و منطق (\en{ALU}) چهاربیتی، مطابق با جدول عملکرد استاندارد (چهارده عملیات حسابی، منطقی و شیفت)، با استفاده از تراشه‌ی جمع‌کننده‌ی \en{74283}، شش تراشه‌ی مالتی‌پلکسر \en{74153} و تعداد کافی گیت‌های \en{AND}، \en{OR}، \en{XOR} و \en{NOT} طراحی و در نرم‌افزار \en{Proteus} پیاده‌سازی شد.
+
+تفکیک مدار به سه زیرواحد مستقلِ حسابی، منطقی و شیفت -- که در نهایت توسط یک لایه‌ی مالتی‌پلکسر انتخاب می‌شدند -- روش طراحی را به‌طور قابل‌توجهی ساده‌تر و قابل‌فهم‌تر کرد و نیاز به هیچ مدار جمع/تفریق‌کننده یا واحد منطقی جداگانه‌ای نبود؛ تمام عملیات حسابی صرفاً با تغییر ورودی دوم تراشه‌ی جمع‌کننده (توسط مالتی‌پلکسرهای سطح اول) به‌دست آمدند.
+
+با اعمال تمامی چهارده \en{Test Case} ممکن (مطابق جدول \ref{tab:testcases})، خروجی مدار در همه‌ی حالت‌ها دقیقاً با مقدار موردانتظار از روی جدول عملکرد مطابقت داشت و نیازی به اصلاح طرح اولیه پیش نیامد؛ به همین دلیل طرح اولیه هیچ تفاوتی با طرح نهایی نداشت و شماتیک و تصویر ارائه‌شده در این گزارش، هر دو متعلق به همان مدار نهاییِ پیاده‌سازی‌شده هستند. مهم‌ترین نکته‌ی آموخته‌شده در این آزمایش، توانایی ترکیب چند تراشه‌ی \en{MSI} (نظیر جمع‌کننده و مالتی‌پلکسر) به‌جای طراحی مدار از پایه با دروازه‌های منطقی است؛ رویکردی که در طراحی واقعی پردازنده‌ها نیز به‌طور گسترده استفاده می‌شود.
+
+\end{document}

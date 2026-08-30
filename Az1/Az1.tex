@@ -1,0 +1,262 @@
+documentclass[a4paper,12pt]{article}
+
+usepackage{graphicx}
+usepackage{geometry}
+usepackage{tikz}
+usetikzlibrary{shapes,arrows.meta,positioning,calc}
+usepackage{booktabs}
+usepackage{caption}
+usepackage{float}
+usepackage{hyperref}
+
+geometry{a4paper, top=2.7cm, bottom=2.7cm, left=2.5cm, right=2.5cm}
+graphicspath{{images}}
+
+usepackage{xepersian}
+settextfont{XB Niloofar}
+
+title{textbf{گزارش آزمایش اول آشنایی با محیط‌های شبیه‌سازی مدارهای منطقی} [4pt]
+large آشنایی با نرم‌افزارهای Fritzing، Logisim و Proteus}
+author{علی اصغر طایری - ۴۰۴۱۷۱۱۳۳  رضا حضرتی - ۴۰۴۱۰۵۷۶۷}
+date{درس آزمایشگاه مدارهای منطقی}
+
+begin{document}
+
+maketitle
+thispagestyle{empty}
+newpage
+
+tableofcontents
+newpage
+
+section{مقدمه و تعریف مسئله}
+هدف از این آزمایش، آشنایی عملی با سه محیط نرم‌افزاری پرکاربرد در طراحی و شبیه‌سازی مدارهای منطقی و الکترونیکی است textbf{Fritzing}، textbf{Logisim} و textbf{Proteus}. این سه ابزار در سه سطح متفاوت از انتزاع کار می‌کنند Fritzing برای بستن مدارهای ساده روی بردبورد و مشاهدهٔ اتصالات فیزیکی، Logisim برای طراحی و شبیه‌سازی مدار در سطح گیت‌های منطقی، و Proteus برای طراحی مدارهای ترکیبی پیچیده‌تر با نمای شماتیک حرفه‌ای و امکان شبیه‌سازی نزدیک به واقعیت.
+
+مسئله‌ای که در این آزمایش باید حل شود در سه بخش خلاصه می‌شود
+begin{enumerate}
+item بستن یک مدار ساده و سپس یک مدار مبتنی بر تراشهٔ lr{7404} روی بردبورد در lr{Fritzing} و ترسیم اتصالات داخلی آن.
+item ساخت مدار جمع‌کنندهٔ کامل (lr{Full Adder}) در lr{Logisim} بر اساس جدول درستی آن، و سپس گسترش آن به یک مدار جمع‌کنندهتفریق‌کنندهٔ چهار بیتی با استفاده از سیگنال کنترلی $C_{in}$.
+item پیاده‌سازی یک جمع‌کنندهٔ چهاربیتی از نوع lr{Carry-Look-Ahead} در نرم‌افزار lr{Proteus}.
+end{enumerate}
+
+هدف نهایی، درک تفاوت این سه سطح شبیه‌سازی و کسب توانایی لازم برای استفاده از آن‌ها در آزمایش‌های آینده است.
+
+section{بررسی و انتخاب روش طراحی}
+
+subsection{بخش Fritzing}
+از آنجا که هدف این بخش آشنایی با نحوهٔ اتصال فیزیکی قطعات روی بردبورد است، مدارها ابتدا در نمای lr{Breadboard} بسته شدند و سپس با نمای lr{Schematic} مقایسه گردیدند تا ارتباط بین دو نما درک شود. مدار اول (شکل ۱) شامل یک مقاومت $220,Omega$، یک lr{LED} قرمز و یک باتری است. مدار دوم با استفاده از تراشهٔ lr{7404} (شش گیت lr{NOT}) بسته شد؛ با استفاده از 6 گیت lr{NOT} به‌صورت زنجیره‌ای و بازخورد آن به ورودی، یک مدار نوسان‌ساز حلقه‌ای (lr{Ring Oscillator}) ساخته شد که چشمک‌زدن lr{LED} نتیجهٔ آن است.
+
+subsection{بخش Logisim}
+برای ساخت جمع‌کنندهٔ کامل، به‌جای طراحی آزمایشی، از فرم استاندارد جبر بول بر اساس جدول درستی استفاده شد
+[
+S = a oplus b oplus C_{in}, qquad C_{out} = ab + C_{in}(a oplus b)
+]
+این انتخاب به این دلیل صورت گرفت که فرم فوق کمترین تعداد گیت (۲ گیت lr{XOR}، ۲ گیت lr{AND} و ۱ گیت lr{OR}) را برای پیاده‌سازی جمع‌کنندهٔ کامل نیاز دارد.
+
+برای گسترش به مدار جمعتفریق چهاربیتی، چهار جمع‌کنندهٔ کامل به‌صورت آبشاری (lr{Ripple Carry}) به هم متصل شدند. برای پشتیبانی از عملیات تفریق، از روش lr{2's Complement} استفاده شد ورودی $B$ پیش از ورود به هر جمع‌کننده از یک گیت lr{XOR} با سیگنال کنترلی $C_{in}$ عبور داده می‌شود (که هم‌زمان به‌عنوان کری ورودی مرحلهٔ اول نیز استفاده می‌شود). وقتی $C_{in}=0$ عملیات $F=A+B$ و وقتی $C_{in}=1$ عملیات $F=A-B$ انجام می‌شود.
+
+subsection{بخش Proteus}
+برای این بخش، طراحی مستقیماً بر اساس معادلات lr{Carry-Look-Ahead} در سطح گیت انجام شد و از تراشهٔ آماده استفاده نشد. برای هر بیت، سیگنال‌های $P_i=A_ioplus B_i$ با گیت‌های lr{XOR} و $G_i=A_iB_i$ با گیت‌های lr{AND} تولید شدند؛ سپس با بسط رابطهٔ $C_{i+1}=G_i+P_iC_i$ برای بیت‌های بالاتر، هر کری به‌صورت مستقیم و موازی از ترکیب گیت‌های lr{AND} و lr{OR} روی $P$ و $G$ مراحل قبل محاسبه شد (بدون انتظار برای انتشار کری از بیت‌های پایین‌تر). در نهایت خروجی مجموع هر بیت با یک گیت lr{XOR} از $P_i$ و کری ورودی همان بیت به دست آمد. این انتخاب به قیمت افزایش تعداد گیت‌ها (مطابق شکل مدار، مجموعاً ۲۸ گیت)، سرعت محاسبهٔ کری را نسبت به روش آبشاری بهبود می‌دهد.
+
+
+section{بلوک‌دیاگرام طرح پیشنهادی اولیه}
+
+پیش از ورود به جزئیات مدار، بلوک‌دیاگرام کلی هر بخش به شکل زیر در نظر گرفته شد.
+begin{figure}[H]
+centering
+begin{tikzpicture}[
+  box.style={draw, thick, minimum width=2.6cm, minimum height=2cm, align=center},
+  port.style={font=small},
+  bus.style={-, thick},
+  =Latex,
+  node distance=1.6cm
+]
+
+node[box] (fa) {Full Adder};
+
+node[port, left=1.8cm of fa.west, yshift=0.5cm]  (a)   {$a$};
+node[port, left=1.8cm of fa.west, yshift=0cm]    (b)   {$b$};
+node[port, left=1.8cm of fa.west, yshift=-0.5cm] (cin) {$C_{in}$};
+
+node[port, right=1.6cm of fa.east, yshift=0.5cm]  (s)    {$S$};
+node[port, right=1.6cm of fa.east, yshift=-0.5cm] (cout) {$C_{out}$};
+
+draw[bus] (a.east)   -- (fa.west - a.east);
+draw[bus] (b.east)   -- (fa.west - b.east);
+draw[bus] (cin.east) -- (fa.west - cin.east);
+draw[bus] (fa.east - s.west)    -- (s.west);
+draw[bus] (fa.east - cout.west) -- (cout.west);
+
+begin{scope}[xshift=8cm]
+node[box, minimum width=3cm] (as) {AdderSubtractor};
+
+node[port, left=1.8cm of as.west, yshift=0.7cm]  (A)   {$A_{30}$};
+node[port, left=1.8cm of as.west, yshift=0cm]    (B)   {$B_{30}$};
+node[port, left=1.8cm of as.west, yshift=-0.7cm] (Cin) {$C_{in}$};
+
+node[port, right=1.6cm of as.east, yshift=0.45cm]  (F)    {$F_{30}$};
+node[port, right=1.6cm of as.east, yshift=-0.45cm] (Cout) {$C_{out}$};
+
+draw[bus] (A.east)   -- node[midway, above, font=scriptsize] {4} (as.west - A.east);
+draw[bus] (B.east)   -- node[midway, above, font=scriptsize] {4} (as.west - B.east);
+draw[bus] (Cin.east) -- (as.west - Cin.east);
+draw[bus] (as.east - F.west)    -- node[midway, above, font=scriptsize] {4} (F.west);
+draw[bus] (as.east - Cout.west) -- (Cout.west);
+end{scope}
+
+end{tikzpicture}
+caption{بلوک‌دیاگرام پیشنهادی جمع‌کنندهٔ کامل (چپ) و مدار جمعتفریق چهاربیتی (راست)}
+end{figure}
+مدار Fritzing نیز در سطح بلوک به‌صورت زیر در نظر گرفته شد
+begin{itemize}
+    item منبع تغذیه $rightarrow$ مقاومت محدودکنندهٔ جریان $rightarrow$ lr{LED} (برای مدار اول)
+    item منبع تغذیه $rightarrow$ زنجیرهٔ گیت‌های lr{NOT} با بازخورد $rightarrow$ lr{LED} خروجی (برای مدار دوم)
+end{itemize}
+section{روند پیاده‌سازی}
+
+subsection{پیاده‌سازی در Fritzing}
+ابتدا یک بردبورد خالی در نظر گرفته شد و با استفاده از ماوس، نحوهٔ اتصال داخلی ردیف‌ها و ریل‌های تغذیهزمین بررسی و رنگ‌آمیزی شد تا ساختار درونی بردبورد شناخته شود (شکل ۲). سپس در نمای بردبورد، مقاومت $220,Omega$ و lr{LED} قرمز با پایانه‌های باتری مطابق شکل استاندارد به هم متصل شدند (شکل ۳). سپس، تراشهٔ lr{7404} روی بردبورد قرار گرفت (شکل ۴) و با اتصال زنجیره‌ای سه گیت lr{NOT} و بازخورد خروجی آخرین گیت به ورودی گیت اول، مدار نوسان‌ساز حلقه‌ای بسته شد.
+
+begin{figure}[H]
+centering
+begin{minipage}{0.45linewidth}
+    centering
+    includegraphics[width=linewidth]{1-2-1-1.png}
+end{minipage}hfill
+begin{minipage}{0.45linewidth}
+    centering
+    includegraphics[width=linewidth]{1-2-1-2.png}
+end{minipage}
+
+vspace{0.4cm}
+
+begin{minipage}{0.45linewidth}
+    centering
+    includegraphics[width=linewidth]{1-2-1-3.png}
+end{minipage}hfill
+begin{minipage}{0.45linewidth}
+    centering
+    includegraphics[width=linewidth]{1-2-1-4.png}
+end{minipage}
+caption{بررسی اتصالات داخلی بردبورد}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.45linewidth]{1-2-2-1.png}hspace{0.3cm}
+includegraphics[width=0.45linewidth]{1-2-2-2.png}
+caption{مدار ساده مقاومت-LED-باتری بسته‌شده روی بردبورد}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.62linewidth]{{Screenshot 2026-07-30 063940}.png}
+caption{قرارگیری تراشهٔ lr{7404} روی بردبورد پیش از سیم‌کشی نهایی}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.75linewidth]{{Screenshot 2026-08-04 160840}.png}
+caption{نمای نهایی مدار نوسان‌ساز حلقه‌ای در نرم‌افزار Fritzing}
+end{figure}
+
+subsection{پیاده‌سازی در Logisim}
+در مرحلهٔ اول، جمع‌کنندهٔ کامل با دو گیت lr{XOR} (برای تولید $S$)، دو گیت lr{AND} و یک گیت lr{OR} (برای تولید $C_{out}$) ساخته شد (شکل 6). سپس هر ۸ حالت ممکن ورودی $(a,b,C_{in})$ اعمال و خروجی‌ها با جدول درستی مقایسه شد.
+
+در مرحلهٔ دوم، چهار نمونه از این جمع‌کنندهٔ کامل به‌صورت آبشاری به هم متصل شدند و در مسیر ورودی $B$ هر مرحله یک گیت lr{XOR} با سیگنال کنترلی مشترک $C_{in}$ قرار گرفت. کری خروجی هر مرحله به کری ورودی مرحلهٔ بعد وصل شد و کری ورودی مرحلهٔ اول نیز به همان سیگنال کنترلی $C_{in}$ متصل گردید تا مدار در حالت $C_{in}=1$ عمل تفریق (متمم دوی $B$ به‌علاوهٔ یک) را انجام دهد.
+
+begin{figure}[H]
+centering
+includegraphics[width=0.6linewidth]{1.PNG}
+caption{مدار جمع‌کنندهٔ کامل ساخته‌شده در Logisim (حالت $a=b=C_{in}=0$)}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.55linewidth]{4444.PNG}
+caption{مدار نهایی جمعتفریق چهاربیتی در Logisim -- حالت جمع ($C_{in}=0$)}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.55linewidth]{44444.PNG}
+caption{مدار نهایی جمعتفریق چهاربیتی در Logisim -- حالت تفریق ($C_{in}=1$)}
+end{figure}
+
+subsection{پیاده‌سازی در Proteus}
+برخلاف روش آبشاری، در این پیاده‌سازی به‌جای استفاده از تراشه‌های آماده، مدار CLA کاملاً از گیت‌های منطقی مجزا ساخته شد ابتدا با گیت‌های lr{XOR} سیگنال‌های lr{Propagate} ($P_i=A_ioplus B_i$) و با گیت‌های lr{AND} سیگنال‌های lr{Generate} ($G_i=A_iB_i$) برای هر بیت به‌طور مستقل تولید شدند. سپس با ترکیب چند مرحله‌ای گیت‌های lr{AND} و lr{OR} بر اساس رابطهٔ $C_{i+1}=G_i+P_iC_i$، کری هر بیت مستقیماً از روی $P$ و $G$ مراحل قبل محاسبه گردید. در نهایت خروجی مجموع هر بیت با یک گیت lr{XOR} از ترکیب $P_i$ و کری ورودی همان بیت به دست آمد.
+
+begin{figure}[H]
+centering
+includegraphics[width=0.75linewidth]{{Screenshot 2026-07-30 080411}.png}
+caption{مدار نهایی جمع‌کنندهٔ چهاربیتی lr{Carry-Look-Ahead} در Proteus}
+end{figure}
+
+
+section{دیاگرام یا شماتیک طرح اولیه}
+
+شماتیک اولیه‌ای که در ابتدای آزمایش برای پیاده‌سازی پیشنهاد شده بود، شامل مدار مقاومت-LED (شکل ۱ صورت آزمایش)، مدار نوسان‌ساز مبتنی بر lr{7404} (شکل ۲ صورت آزمایش)، جمع‌کنندهٔ کامل با جدول درستی استاندارد (شکل ۳ صورت آزمایش)، بلوک جمعتفریق چهاربیتی (شکل ۴ صورت آزمایش) و ساختار جمع‌کنندهٔ lr{Carry-Look-Ahead} (شکل ۵ صورت آزمایش) بود. این طرح اولیه بدون تغییر ساختاری اجرا شد و تنها در انتخاب مقادیر جزئی (مانند رنگ lr{LED} یا آرایش فیزیکی قطعات روی بردبورد) با توجه به قطعات در دسترس، تغییرات جزئی اعمال گردید.
+
+section{بررسی Case Test ها}
+
+subsection{تست جمع‌کنندهٔ کامل}
+هر ۸ حالت ممکن ورودی به مدار جمع‌کنندهٔ کامل در Logisim اعمال شد و خروجی با جدول درستی مرجع مقایسه گردید. نتیجه در جدول زیر خلاصه شده است.
+begin{table}[H]
+centering
+caption{جدول درستی جمع‌کنندهٔ کامل و نتیجهٔ تست}
+begin{LTR}
+begin{tabular}{ccccccc}
+toprule
+multicolumn{4}{c}{ } & multicolumn{2}{c}{خروجی} & 
+$a$ & $b$ & $C_{in}$ & & $S$ & $C_{out}$ & نتیجه 
+midrule
+0 & 0 & 0 & & 0 & 0 & lr{OK} 
+0 & 0 & 1 & & 1 & 0 & lr{OK} 
+0 & 1 & 0 & & 1 & 0 & lr{OK} 
+0 & 1 & 1 & & 0 & 1 & lr{OK} 
+1 & 0 & 0 & & 1 & 0 & lr{OK} 
+1 & 0 & 1 & & 0 & 1 & lr{OK} 
+1 & 1 & 0 & & 0 & 1 & lr{OK} 
+1 & 1 & 1 & & 1 & 1 & lr{OK} 
+bottomrule
+end{tabular}
+end{LTR}
+end{table}
+در تمام ۸ حالت، خروجی مدار ساخته‌شده در Logisim دقیقاً با جدول درستی مرجع مطابقت داشت.
+
+begin{figure}[H]
+centering
+includegraphics[width=0.4linewidth]{3.PNG}hspace{0.3cm}
+includegraphics[width=0.4linewidth]{6.PNG}hspace{0.3cm}
+includegraphics[width=0.4linewidth]{2.PNG}
+caption{نمونه‌ای از تست سه حالت ورودی روی جمع‌کنندهٔ کامل}
+end{figure}
+
+subsection{تست مدار جمعتفریق چهاربیتی}
+برای بررسی صحت عملکرد، به‌عنوان نمونه مقادیر $A=1101_2;(13)$ و $B=1011_2;(11)$ در نظر گرفته شد
+begin{itemize}
+item با $C_{in}=0$ خروجی $F = 1000_2 = 8$و یک کری ، که برابر $A+B$ است.
+item با $C_{in}=1$ خروجی $F = 0010_2 = 2$، که برابر $A-B$ است.
+end{itemize}
+هر دو حالت با محاسبهٔ دستی مطابقت داشت که صحت پیاده‌سازی مدار جمعتفریق را تأیید می‌کند.
+
+subsection{تست جمع‌کنندهٔ CLA}
+مقادیر مختلف ورودی به مدار CLA در Proteus اعمال شد و مشاهده شد که کری هر بیت بلافاصله و بدون تأخیر انتشار از بیت‌های پایین‌تر محاسبه می‌شود؛ نتیجهٔ مجموع در تمامی حالت‌های آزموده‌شده با محاسبهٔ دستی یکسان بود.
+
+begin{figure}[H]
+centering
+includegraphics[width=0.75linewidth]{{Screenshot 2026-08-02 073010}.png}
+caption{نمونه‌ای از تست مدار جمع‌کنندهٔ lr{CLA} در Proteus}
+end{figure}
+
+begin{figure}[H]
+centering
+includegraphics[width=0.75linewidth]{{Screenshot 2026-08-02 072952}.png}
+caption{نمونه‌ای دیگر از تست مدار جمع‌کنندهٔ lr{CLA} در Proteus}
+end{figure}
+
+section{نتیجه‌گیری}
+
+به‌طور کلی، این آزمایش نشان داد که انتخاب ابزار شبیه‌سازی باید متناسب با سطح انتزاع مورد نیاز مسئله (فیزیکی، منطقی یا الکتریکی) صورت گیرد، و درک صحیح جمع‌کنندهٔ کامل به‌عنوان بلوک پایه، امکان ساخت مدارهای حسابی پیچیده‌تر مانند جمعتفریق‌کننده و CLA را فراهم می‌سازد.
+
+end{document}

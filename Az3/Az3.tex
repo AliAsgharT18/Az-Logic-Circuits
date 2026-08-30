@@ -1,0 +1,545 @@
+\documentclass[12pt,a4paper]{article}
+
+
+
+
+
+\usepackage{graphicx}
+\graphicspath{{pics/}}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{a4paper, top=2.8cm, bottom=2.8cm, left=2.5cm, right=2.5cm}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xepersian}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning}
+\settextfont{XB Niloofar}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+\setlatintextfont{Times New Roman}
+
+
+
+
+
+\makeatletter
+\let\oldthesection\thesection
+\let\oldthesubsection\thesubsection
+\let\oldthesubsubsection\thesubsubsection
+\let\oldthefigure\thefigure
+\let\oldthetable\thetable
+\renewcommand{\thesection}{\lr{\oldthesection}}
+\renewcommand{\thesubsection}{\lr{\oldthesubsection}}
+\renewcommand{\thesubsubsection}{\lr{\oldthesubsubsection}}
+\renewcommand{\thefigure}{\lr{\oldthefigure}}
+\renewcommand{\thetable}{\lr{\oldthetable}}
+\makeatother
+
+
+\title{گزارش آزمایش شماره ۳ \\ \large طراحی و پیاده‌سازی شمارنده‌های بالا/پایین‌شمار همگام}
+\author{درس مدارهای منطقی}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\vspace*{2cm}
+	{\Huge \textbf{گزارش آزمایش شماره ۳}}\\[0.5cm]
+	{\large درس: مدارهای منطقی}\\[0.5cm]
+	\vspace{1.5cm}
+
+	{\large
+	علی‌اصغر طایری - ۴۰۴۱۷۱۱۳۳ \\[0.3cm]
+	رضا حضرتی - ۴۰۴۱۰۵۷۶۷
+	}
+	\vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+\section{مقدمه و تعریف مسئله}
+
+هدف کلی این آزمایش، آشنایی با طراحی و پیاده‌سازی شمارنده‌های همگام \lr{(Synchronous Counter)} با قابلیت بالا‌شمار و پایین‌شمار \lr{(Up/Down Counter)} و در برخی بخش‌ها قابلیت بارگذاری موازی \lr{(Parallel Load)} است. این آزمایش در چهار بخش دنبال شده است:
+
+\begin{itemize}[rightmargin=0pt]
+	\item \textbf{۳-۱-۱}: طراحی یک شمارنده‌ی ۴ بیتی بالا/پایین‌شمار با استفاده از فلیپ‌فلاپ‌های جی‌کی (۷۴۷۶) بدون قابلیت بارگذاری موازی.
+	\item \textbf{۳-۱-۲}: توسعه‌ی مدار بخش قبل با افزودن قابلیت بارگذاری موازی \lr{(Parallel Load)} به شمارنده‌ی ۴ بیتی.
+	\item \textbf{۳-۲}: طراحی یک شمارنده‌ی ۳ بیتی (شمارش از ۰ تا ۷) با فلیپ‌فلاپ‌های جی‌کی به همراه نمایش خروجی روی نمایشگر هفت‌قسمتی \lr{BCD}.
+	\item \textbf{۳-۳}: طراحی یک شمارنده‌ی دو رقمی \lr{BCD} (شمارش از ۰ تا ۶۳) با استفاده از تراشه‌های آماده‌ی ۷۴۱۹۰ به همراه قابلیت بارگذاری موازی و ریست به ۰ یا ۶۳.
+\end{itemize}
+
+در تمام بخش‌ها، مسئله‌ی اصلی طراحی یک مدار منطقی ترتیبی است که بتواند بر اساس یک سیگنال کنترلی، در جهت افزایشی یا کاهشی بشمارد و در برخی موارد، امکان بارگذاری یک مقدار دلخواه به‌صورت موازی و همچنین بازنشانی \lr{(Reset)} به مقادیر خاص را نیز فراهم کند.
+
+\newpage
+
+\section{آزمایش ۳-۱-۱: شمارنده‌ی ۴ بیتی بالا/پایین‌شمار}
+
+
+\subsection{بررسی و انتخاب روش طراحی}
+برای پیاده‌سازی این مدار از چهار فلیپ‌فلاپ جی‌کی (تراشه‌ی ۷۴۷۶) به همراه تعدادی گیت‌های \lr{AND}، \lr{OR} و \lr{XOR} استفاده شده است. ایده‌ی اصلی طراحی مشابه ساختار شمارنده‌های ریپل با ورودی‌های \lr{J} و \lr{K} است، با این تفاوت که به‌جای استفاده از خروجی هر بیت به‌عنوان کلاک بیت بعدی (که ساختار غیرهمگام ایجاد می‌کند)، کلاک تمام فلیپ‌فلاپ‌ها مشترک است و شرایط شمارش (بالا یا پایین) با گیت‌های ترکیبی روی ورودی‌های \lr{J} و \lr{K} هر بیت اعمال می‌شود؛ به این ترتیب مدار به‌صورت کاملاً همگام \lr{(Synchronous)} عمل می‌کند.
+
+\subsection{بلوک‌دیاگرام طرح پیشنهادی اولیه}
+ساختار کلی مدار شامل چهار طبقه‌ی فلیپ‌فلاپ جی‌کی است که به‌صورت متوالی از بیت کم‌ارزش \lr{(LSB)} تا بیت پرارزش \lr{(MSB)} چیده شده‌اند. سیگنال‌های کنترلی «شمارش بالا» و «شمارش پایین» به‌صورت مجزا وارد شبکه‌ی گیت‌های ترکیبی هر طبقه می‌شوند تا شرط فعال‌سازی \lr{(Toggle)} هر بیت را بر اساس وضعیت بیت‌های پایین‌تر مشخص کنند.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		block/.style={draw, minimum width=1.7cm, minimum height=1.1cm, align=center, font=\footnotesize},
+		>=Stealth
+	]
+	\node[block] (ff0) {\lr{FF0}\\\lr{(LSB)}};
+	\node[block, right=1.1cm of ff0] (ff1) {\lr{FF1}};
+	\node[block, right=1.1cm of ff1] (ff2) {\lr{FF2}};
+	\node[block, right=1.1cm of ff2] (ff3) {\lr{FF3}\\\lr{(MSB)}};
+
+	\draw[->] (ff0) -- node[above, font=\scriptsize]{منطق کنترل} (ff1);
+	\draw[->] (ff1) -- node[above, font=\scriptsize]{منطق کنترل} (ff2);
+	\draw[->] (ff2) -- node[above, font=\scriptsize]{منطق کنترل} (ff3);
+
+	\node[below=0.9cm of ff0, font=\footnotesize] (clk) {کلاک مشترک};
+	\draw[->] (clk.north) -- (ff0.south);
+	\draw[->] (clk) -- (ff1.south);
+	\draw[->] (clk) -- (ff2.south);
+	\draw[->] (clk) -- (ff3.south);
+
+	\node[below=1.6cm of ff0, font=\footnotesize] (ud) {\lr{Count Up / Count Down}};
+	\draw[->] (ud.north) -- (clk.south);
+	\end{tikzpicture}
+	\caption{بلوک دیاگرام کلی شمارنده‌ی ۴ بیتی بالا/پایین‌شمار (آزمایش ۳-۱-۱)}
+\end{figure}
+
+\subsection{روند پیاده‌سازی}
+\begin{itemize}[rightmargin=0pt]
+	\item چهار فلیپ‌فلاپ جی‌کی به‌صورت خطی از \lr{LSB} تا \lr{MSB} چیده شدند و پایه‌ی کلاک همه به یک منبع مشترک متصل شد.
+	\item پایه‌های \lr{J} و \lr{K} بیت اول \lr{(LSB)} مستقیماً به پاور وصل شدند تا در هر پالس کلاک تغییر حالت دهد.
+	\item برای هر بیت بعدی، شرط فعال‌سازی \lr{(Toggle)} از ترکیب خروجی بیت‌های پایین‌تر با سیگنال‌های \lr{Count Up/Down} توسط گیت‌های \lr{AND/OR} ساخته شد: در مسیر بالاشمار وقتی همه‌ی بیت‌های پایین‌تر ۱ باشند و در مسیر پایین‌شمار وقتی همه ۰ باشند.
+	\item یک گیت \lr{AND} نهایی سیگنال‌های \lr{Count Up} و \lr{Count Down} را ترکیب کرد تا مدار همیشه فقط در یک جهت فعال باشد؛ خروجی فلیپ‌فلاپ‌ها به‌صورت مستقیم (بدون نمایشگر) مشاهده می‌شود.
+\end{itemize}
+
+\subsection{دیاگرام یا شماتیک طرح اولیه}
+
+
+
+
+
+
+
+تصویر طرح اولیه‌ی این بخش در دسترس نبود و صرفاً طرح نهایی (پس از رفع اشکالات) در اختیار است که در بخش بعد آورده شده است.
+
+\subsection{دیاگرام طرح نهایی}
+شکل \ref{fig:3-1-1-main} شماتیک نهایی مدار شمارنده‌ی ۴ بیتی بالا/پایین‌شمار بدون بارگذاری موازی را نشان می‌دهد.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\linewidth]{3-1-1-main.PNG}
+	\caption{طرح نهایی مدار آزمایش ۳-۱-۱}
+	\label{fig:3-1-1-main}
+\end{figure}
+
+\subsection{بررسی \lr{Test Case} ها}
+برای بررسی صحت عملکرد مدار، دو حالت اصلی «بالاشمار» و «پایین‌شمار» در چند لحظه‌ی زمانی مختلف بررسی شده‌اند.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountUpTest-1.PNG}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountUpTest-2.PNG}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountUpTest-3.PNG}\caption*{حالت ۳}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountUpTest-4.PNG}\caption*{حالت ۴}\end{subfigure}
+	\caption{تست حالت بالاشمار \lr{(Count Up)} — آزمایش ۳-۱-۱}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountDownTest-1.PNG}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountDownTest-2.PNG}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountDownTest-3.PNG}\caption*{حالت ۳}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-1-CountDownTest-4.PNG}\caption*{حالت ۴}\end{subfigure}
+	\caption{تست حالت پایین‌شمار \lr{(Count Down)} — آزمایش ۳-۱-۱}
+\end{figure}
+
+در هر دو حالت، خروجی فلیپ‌فلاپ‌ها به‌درستی و به‌صورت همگام با لبه‌ی کلاک، در جهت مورد انتظار (افزایشی یا کاهشی) تغییر می‌کند که نشان‌دهنده‌ی صحت طراحی منطق کنترلی \lr{J} و \lr{K} است.
+
+\subsection{نتیجه‌گیری}
+مدار طراحی‌شده به‌درستی و به‌صورت همگام، در هر دو جهت افزایشی و کاهشی می‌شمارد.
+
+\newpage
+
+\section{آزمایش ۳-۱-۲: شمارنده‌ی ۴ بیتی بالا/پایین‌شمار با بارگذاری موازی}
+
+
+\subsection{بررسی و انتخاب روش طراحی}
+این بخش، توسعه‌یافته‌ی مدار آزمایش ۳-۱-۱ است. علاوه بر فلیپ‌فلاپ‌های جی‌کی (۷۴۷۶) و گیت‌های \lr{AND/OR/XOR}، از گیت‌های \lr{NAND} و \lr{NOT} اضافی برای پیاده‌سازی قابلیت بارگذاری موازی \lr{(Parallel Load)} استفاده شده است. دلیل انتخاب این روش، امکان تزریق مستقیم یک مقدار دلخواه به فلیپ‌فلاپ‌ها بدون نیاز به شمارش پی‌درپی از مقدار فعلی تا مقدار هدف است.
+
+\subsection{بلوک‌دیاگرام طرح پیشنهادی اولیه}
+ساختار کلی مشابه بخش ۳-۱-۱ است با افزودن یک ورودی «\lr{Load}» و چهار ورودی داده‌ی موازی (\lr{D0} تا \lr{D3}) که از طریق شبکه‌ای از گیت‌های \lr{NAND} به ورودی‌های \lr{J} و \lr{K} هر فلیپ‌فلاپ مسیر داده می‌شوند.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		block/.style={draw, minimum width=1.9cm, minimum height=1.1cm, align=center, font=\footnotesize},
+		>=Stealth
+	]
+	\node[block] (ff0) {\lr{FF0}\\\lr{(LSB)}};
+	\node[block, right=1.3cm of ff0] (ff1) {\lr{FF1}};
+	\node[block, right=1.3cm of ff1] (ff2) {\lr{FF2}};
+	\node[block, right=1.3cm of ff2] (ff3) {\lr{FF3}\\\lr{(MSB)}};
+
+	\draw[->] (ff0) -- (ff1);
+	\draw[->] (ff1) -- (ff2);
+	\draw[->] (ff2) -- (ff3);
+
+	\node[below=1.0cm of ff0, font=\footnotesize] (clk) {کلاک مشترک};
+	\foreach \n in {ff0,ff1,ff2,ff3}{\draw[->] (clk) -- (\n.south);}
+
+	\node[above=1.0cm of ff0, font=\footnotesize] (d0) {\lr{D0}};
+	\node[above=1.0cm of ff1, font=\footnotesize] (d1) {\lr{D1}};
+	\node[above=1.0cm of ff2, font=\footnotesize] (d2) {\lr{D2}};
+	\node[above=1.0cm of ff3, font=\footnotesize] (d3) {\lr{D3}};
+	\draw[->] (d0) -- (ff0); \draw[->] (d1) -- (ff1);
+	\draw[->] (d2) -- (ff2); \draw[->] (d3) -- (ff3);
+
+	\node[below=1.8cm of ff1, font=\footnotesize] (ud) {\lr{Count Up/Down}};
+	\node[below=1.8cm of ff2, font=\footnotesize] (ld) {\lr{Load}};
+	\draw[->] (ud.north) -- (clk.south);
+	\draw[->] (ld.north) -- (clk.south);
+	\end{tikzpicture}
+	\caption{بلوک دیاگرام شمارنده‌ی ۴ بیتی با قابلیت بارگذاری موازی (آزمایش ۳-۱-۲)}
+\end{figure}
+
+\subsection{روند پیاده‌سازی}
+ساختار پایه دقیقاً مانند آزمایش ۳-۱-۱ است؛ تنها تفاوت، افزودن منطق بارگذاری موازی است:
+\begin{itemize}[rightmargin=0pt]
+	\item هر ورودی داده‌ی موازی (\lr{D0} تا \lr{D3}) به همراه سیگنال \lr{Load} وارد یک گیت \lr{NAND} می‌شود.
+	\item خروجی این گیت‌ها با خروجی منطق شمارش (همان منطق بخش ۳-۱-۱) از طریق گیت‌های \lr{OR/AND} ترکیب شده تا مقدار نهایی \lr{J} و \lr{K} را در دو حالت «شمارش عادی» و «بارگذاری» تعیین کند؛ دو گیت \lr{NOT} روی \lr{Load} و \lr{Count Up/Down} حالت‌های \lr{Active High/Low} را پوشش می‌دهند.
+	\item وقتی \lr{Load} فعال است، مقدار \lr{D} اولویت می‌گیرد و شمارش عادی موقتاً غیرفعال می‌شود؛ در غیر این صورت مدار مانند بخش ۳-۱-۱ به شمارش ادامه می‌دهد.
+\end{itemize}
+
+\subsection{دیاگرام یا شماتیک طرح اولیه}
+تصویر طرح اولیه (پیش از رفع اشکالات نهایی) برای این بخش در اختیار قرار نگرفت و صرفاً طرح نهایی زیر موجود است.
+
+
+
+
+
+
+\subsection{دیاگرام طرح نهایی}
+شکل \ref{fig:3-1-2-main} شماتیک نهایی مدار شمارنده‌ی ۴ بیتی بالا/پایین‌شمار به همراه بارگذاری موازی را نشان می‌دهد.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\linewidth]{3-1-2-main.PNG}
+	\caption{طرح نهایی مدار آزمایش ۳-۱-۲}
+	\label{fig:3-1-2-main}
+\end{figure}
+
+\subsection{بررسی \lr{Test Case} ها}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountUpTest-1.PNG}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountUpTest-2.PNG}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountUpTest-3.PNG}\caption*{حالت ۳}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountUpTest-4.PNG}\caption*{حالت ۴}\end{subfigure}
+	\caption{تست حالت بالاشمار \lr{(Count Up)} — آزمایش ۳-۱-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountDownTest-1.PNG}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountDownTest-2.PNG}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountDownTest-3.PNG}\caption*{حالت ۳}\end{subfigure}
+	\begin{subfigure}{0.23\linewidth}\includegraphics[width=\linewidth]{3-1-2-CountDownTest-4.PNG}\caption*{حالت ۴}\end{subfigure}
+	\caption{تست حالت پایین‌شمار \lr{(Count Down)} — آزمایش ۳-۱-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\linewidth]{3-1-2-ParallelLoadTest.PNG}
+	\caption{تست بارگذاری موازی \lr{(Parallel Load)} — آزمایش ۳-۱-۲}
+\end{figure}
+
+نتایج نشان می‌دهد که در حالت غیرفعال بودن \lr{Load}، مدار مانند بخش قبل عمل می‌کند و در لحظه‌ی فعال شدن \lr{Load}، مقدار موجود در ورودی‌های \lr{D0} تا \lr{D3} بدون توجه به مقدار قبلی شمارنده، مستقیماً در فلیپ‌فلاپ‌ها بارگذاری می‌شود.
+
+\subsection{نتیجه‌گیری}
+افزودن منطق بارگذاری موازی، بدون اختلال در عملکرد شمارش عادی، امکان تنظیم دستی مقدار شمارنده را فراهم کرد.
+
+\newpage
+
+\section{آزمایش ۳-۲: شمارنده‌ی ۳ بیتی (۰ تا ۷) با نمایشگر هفت‌قسمتی}
+
+
+\subsection{بررسی و انتخاب روش طراحی}
+برای پیاده‌سازی این مدار از فلیپ‌فلاپ‌های جی‌کی \lr{(JK)} و تعدادی گیت‌های \lr{XOR} و \lr{NAND} استفاده می‌کنیم. به‌طور دقیق از سه فلیپ‌فلاپ جی‌کی برای شمارش اعداد از ۰ تا ۷ استفاده شده است.
+
+\subsection{بلوک‌دیاگرام طرح پیشنهادی اولیه}
+در واقع از خروجی بیت‌های کم‌ارزش‌تر برای ورودی بیت‌های پرارزش‌تر استفاده می‌کنیم، البته با شرایط خاصی که به‌تفصیل در ادامه توضیح داده می‌شود.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		block/.style={draw, minimum width=1.8cm, minimum height=1.1cm,
+			align=center, font=\footnotesize},
+		sig/.style={font=\scriptsize},
+		>=Stealth
+		]
+
+		
+		\node[block] (ff0) {\lr{FF0 (Q0)}\\ \lr{LSB}};
+		\node[block, right=1.8cm of ff0] (ff1) {\lr{FF1 (Q1)}};
+		\node[block, right=1.8cm of ff1] (ff2) {\lr{FF2 (Q2)}\\ \lr{MSB}};
+		\node[block, right=1.8cm of ff2, minimum width=2.4cm] (bcd)
+			{نمایشگر هفت‌قسمتی\\ \lr{BCD}};
+
+		
+		\draw[->] (ff0) -- node[above, sig] {\lr{XOR} با \lr{X}} (ff1);
+		\draw[->] (ff1) -- node[above, sig] {\lr{XOR + NAND}} (ff2);
+
+		
+		\draw[->] (ff0.north) to[out=60, in=180] ($(bcd.west)+(0,0.5)$);
+		\draw[->] (ff1.north) to[out=60, in=180] ($(bcd.west)+(0,0.15)$);
+		\draw[->] (ff2) -- (bcd);
+
+		
+		\coordinate (clkL) at ($(ff0.south)+(-0.6,-1.6)$);
+		\coordinate (clkR) at ($(ff2.south)+(0.6,-1.6)$);
+		\draw[->] (clkL) -- node[left, sig] {کلاک} (clkR);
+
+		\draw[->] (ff0.south |- clkL) -- (ff0.south);
+		\draw[->] (ff1.south |- clkL) -- (ff1.south);
+		\draw[->] (ff2.south |- clkL) -- (ff2.south);
+
+		
+		\node[sig, below=0.55cm of ff1] (x) {\lr{X} \lr{(}شمار جهت\lr{)}};
+		\draw[->] (x.north) -- (ff1.south);
+
+	\end{tikzpicture}
+	\caption{بلوک دیاگرام شمارنده‌ی ۳ بیتی همراه با نمایشگر (آزمایش ۳-۲)}
+	\label{fig:counter-block-diagram}
+\end{figure}
+
+\subsection{روند پیاده‌سازی}
+برای پیاده‌سازی این مدار از سه فلیپ‌فلاپ جی‌کی یونیورسال، دو گیت \lr{XOR}، یک گیت \lr{NAND}، یک کلاک و در نسخه‌ی نهایی از یک نمایش‌دهنده‌ی هفت‌قسمتی \lr{BCD} استفاده شده است.
+
+ابتدا سه فلیپ‌فلاپ به‌صورت خطی در کنار یکدیگر قرار داده شدند، به‌نحوی‌که راست‌ترین فلیپ‌فلاپ بیت کم‌ارزش \lr{(Q0)} و چپ‌ترین بیت پرارزش \lr{(Q2)} باشد. سپس پایه‌ی کلاک همه‌ی فلیپ‌فلاپ‌ها به یک کلاک مشترک متصل شد و هر دو پایه‌ی \lr{J} و \lr{K} در فلیپ‌فلاپ اول (بیت کم‌ارزش) به تغذیه (پاور) متصل شدند، زیرا این بیت در هر پالس کلاک، در هر دو حالت بالاشمار و پایین‌شمار، تغییر می‌کند.
+
+سپس یک \lr{Logic State} به‌عنوان ورودی \lr{X} در نظر گرفته شد: اگر \lr{X} برابر ۰ باشد شمارنده پایین‌شمار و اگر برابر ۱ باشد شمارنده بالاشمار است. بنابراین خروجی \lr{XOR} شده‌ی \lr{Q} خارج‌شده از فلیپ‌فلاپ اول با \lr{X}، به‌عنوان هر دو ورودی \lr{J} و \lr{K} فلیپ‌فلاپ دوم داده شد.
+
+در مرحله‌ی سوم، همین کار برای فلیپ‌فلاپ آخر نیز انجام شد، با این تفاوت که خروجی \lr{XOR} مستقیماً به فلیپ‌فلاپ داده نشد، بلکه وارد یک گیت \lr{NAND} شد که ورودی دیگر آن نیز خروجی \lr{XOR} قبلی است. در نهایت \lr{J} و \lr{K} فلیپ‌فلاپ آخر نیز هر دو به خروجی \lr{NAND} متصل شدند.
+
+در ابتدا مدار خروجی را با \lr{Logic Probe} و به‌صورت باینری نمایش می‌داد، اما برای راحتی بیشتر از نمایشگر هفت‌قسمتی \lr{BCD} استفاده شد؛ بدین صورت که خروجی هر فلیپ‌فلاپ از راست به چپ به ورودی‌های نمایشگر از راست به چپ متصل شد و ورودی چهارم نمایشگر نیز به گراند متصل شد تا همیشه صفر باشد.
+
+\subsection{دیاگرام یا شماتیک طرح اولیه}
+تصویر طرح اولیه (نسخه‌ی نمایش باینری با \lr{Logic Probe}، پیش از افزودن نمایشگر هفت‌قسمتی) برای این بخش در اختیار قرار نگرفت.
+
+
+
+
+
+
+\subsection{دیاگرام طرح نهایی}
+شکل \ref{fig:3-2-main} نمونه‌ای از شماتیک نهایی مدار (همراه با نمایشگر هفت‌قسمتی \lr{BCD}) را نشان می‌دهد.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{3-2-1.png}
+	\caption{طرح نهایی مدار آزمایش ۳-۲}
+	\label{fig:3-2-main}
+\end{figure}
+
+\subsection{بررسی \lr{Test Case} ها}
+شش حالت آزمایشی مختلف بررسی شده‌اند. در هر حالت، تصویر سمت راست وضعیت مدار با \lr{X=1} (بالاشمار) و تصویر سمت چپ وضعیت مدار با \lr{X=0} (پایین‌شمار) را در همان لحظه نشان می‌دهد.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-1.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-1'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۱ — آزمایش ۳-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-2.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-2'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۲ — آزمایش ۳-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-3.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-3'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۳ — آزمایش ۳-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-4.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-4'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۴ — آزمایش ۳-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-5.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-5'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۵ — آزمایش ۳-۲}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-6.png}\caption*{\lr{X=1} (بالاشمار)}\end{subfigure}
+	\begin{subfigure}{0.45\linewidth}\includegraphics[width=\linewidth]{3-2-6'.png}\caption*{\lr{X=0} (پایین‌شمار)}\end{subfigure}
+	\caption{تست کیس شماره ۶ — آزمایش ۳-۲}
+\end{figure}
+
+در تمامی حالات، تغییر مقدار \lr{X} بین ۰ و ۱ به‌درستی جهت شمارش را عوض می‌کند و مقدار نمایش‌داده‌شده روی نمایشگر هفت‌قسمتی با مقدار باینری خروجی فلیپ‌فلاپ‌ها مطابقت دارد.
+
+\subsection{نتیجه‌گیری}
+مدار به‌کمک گیت‌های \lr{XOR} و \lr{NAND} به‌درستی از ۰ تا ۷ در هر دو جهت شمارش کرد و نمایشگر هفت‌قسمتی \lr{BCD} خوانایی خروجی را نسبت به حالت باینری اولیه بهبود داد.
+
+\newpage
+
+\section{آزمایش ۳-۳: شمارنده‌ی دو رقمی \lr{BCD} (۰ تا ۶۳) با تراشه‌ی ۷۴۱۹۰}
+
+
+\subsection{بررسی و انتخاب روش طراحی}
+بر اساس دستور داده‌شده، باید از دو تراشه‌ی ۷۴۱۹۰ که درواقع یک شمارنده‌ی \lr{BCD} است استفاده کرد. دلیل استفاده از دو تراشه این است که یکی از آن‌ها تنها می‌تواند اعداد ۰ تا ۹ را بشمارد و برای بیشتر از آن باید از شمارنده‌های بیشتری استفاده کرد (در اینجا از ۰ تا ۶۳).
+
+برای دست‌یابی به همه‌ی ویژگی‌های موردنیاز مدار (بارگذاری موازی، بالا و پایین‌شمار درست، همراه با ریست به ۰ یا ۶۳) باید از تعدادی گیت و نیز دو مالتی‌پلکسر ۷۴۱۵۷ استفاده کرد.
+
+\subsection{بلوک‌دیاگرام طرح اولیه}
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		block/.style={draw, minimum width=1.8cm, minimum height=1.1cm, align=center, font=\scriptsize},
+		sig/.style={font=\scriptsize},
+		>=Stealth
+	]
+	
+	\node[block] (uOnes) {\lr{74190}\\یکان};
+	\node[block, left=2cm of uOnes] (uTens) {\lr{74190}\\دهگان};
+
+	
+	\node[block, minimum width=1.4cm, above=1cm of uOnes] (muxOnes) {\lr{74157}};
+	\node[block, minimum width=1.4cm, above=1cm of uTens] (muxTens) {\lr{74157}};
+
+	
+	\node[sig, above=1.8cm of uOnes] (sigLoad)  {\lr{Load}};
+	\node[sig, above=1.8cm of uTens] (sigReset) {\lr{Reset}};
+
+	
+	\node[sig, below=1cm of uOnes] (sigClk) {\lr{CLK}};
+    \node[sig, below=1.6cm of uTens] (sigDU)  {\lr{D/$\overline{\mathrm{U}}$}};
+	
+	\draw[->] (muxOnes) -- (uOnes);
+	\draw[->] (muxTens) -- (uTens);
+
+	
+	\draw[->] (sigLoad)  -- (muxOnes);
+	\draw[->] (sigReset) -- (muxTens);
+
+	
+	\draw[->] (sigClk) -- (uOnes);
+	\draw[->] (sigClk) -| (uTens.south);
+
+	
+	\draw[->] (uOnes.west) -- node[above, font=\tiny]{\lr{RCO}} (uTens.east);
+
+	
+	\draw[->] (sigDU) -- (uTens.south);
+	\draw[->] (sigDU.east) -| (uOnes.south);
+	\end{tikzpicture}
+	\caption{بلوک دیاگرام شمارنده‌ی دو رقمی \lr{BCD} با بارگذاری موازی و ریست، \lr{Reset} روی ۰ یا ۶۳ فعال می‌شود (آزمایش ۳-۳)}
+	\label{fig:bcd-block-diagram}
+\end{figure}
+
+\subsection{روند پیاده‌سازی}
+ابتدا دو تراشه به‌صورت خطی قرار داده می‌شوند، با این فرض که تراشه‌ی سمت راست یکان و تراشه‌ی سمت چپ دهگان را بشمارد. برای این هدف، ابتدا یک کلاک به پایه‌ی کلاک تراشه‌ی سمت راست متصل می‌شود و سپس خروجی \lr{RCO} تراشه‌ی سمت راست به ورودی کلاک تراشه‌ی سمت چپ متصل می‌شود؛ در واقع خروجی \lr{RCO} سیگنالی است که زمانی ایجاد می‌شود که این تراشه به ماکسیمم عدد قابل‌شمارش خود (یعنی ۹) برسد و سپس دوباره به ۰ برگردد؛ به همین دلیل این سیگنال به‌شدت مناسب ورودی کلاک تراشه‌ی شمارنده‌ی دهگان‌هاست.
+
+سپس پایه‌ی \lr{Enable} هر یک از تراشه‌ها به گراند متصل می‌شود (این پایه \lr{Active-Low} است، پس با اتصال به گراند عمل شمارش رخ می‌دهد). برای اینکه قابلیت بالا و پایین‌شمار هر دو در دسترس باشد، پایه‌ی \lr{D/U̅} هر دو تراشه به یک \lr{Logic State} متصل می‌شود؛ اگر مقدار آن ۰ باشد بالاشمار و اگر ۱ باشد پایین‌شمار خواهد بود.
+
+برای بخش بارگذاری موازی و ریست، دو مالتی‌پلکسر ۷۴۱۵۷ در کنار هر یک از تراشه‌ها قرار داده می‌شوند و پایه‌ی \lr{A} (سلکت‌کننده‌ی داخلی نیست، بلکه یکی از ورودی‌های داده) هر مالتی‌پلکسر به گراند متصل می‌شود. علاوه بر آن، ورودی‌های \lr{1A} و \lr{4A} از مالتی‌پلکسر دهگان و ورودی‌های \lr{4A} و \lr{3A} از مالتی‌پلکسر یکان نیز به گراند متصل می‌شوند تا مقدار ریست به ۰ یا ۶۳ به‌درستی ساخته شود. سایر ورودی‌های \lr{B} هر مالتی‌پلکسر به \lr{Logic State}های جداگانه برای بارگذاری موازی متصل می‌شوند. خروجی‌های هر مالتی‌پلکسر به‌صورت مستقیم به ورودی‌های داده‌ی هر شمارنده متصل می‌شود.
+
+برای پایه‌ی سلکت \lr{(A/B)} مالتی‌پلکسرها، خروجی‌های \lr{Q2} و \lr{Q1} شمارنده‌ی دهگان و \lr{Q2} شمارنده‌ی یکان وارد یک گیت \lr{AND} می‌شوند و خروجی آن با \lr{Q3} دهگان \lr{NOR} می‌شود؛ خروجی این \lr{NOR} مستقیماً به پایه‌ی سلکت هر دو مالتی‌پلکسر داده می‌شود. این ترکیب، لحظه‌ی رسیدن شمارش به ۶۳ را تشخیص داده و باعث فعال شدن مسیر ریست می‌شود. خروجی \lr{NOR} با یک \lr{Logic State} نشان‌دهنده‌ی بارگذاری موازی نیز \lr{AND} می‌شود و خروجی آن به پایه‌ی \lr{PL} هر دو شمارنده داده می‌شود؛ بدین ترتیب مدار برای کار آماده می‌شود.
+
+\subsection{دیاگرام یا شماتیک طرح اولیه}
+تصویر طرح اولیه (پیش از افزودن مالتی‌پلکسرها و اصلاح مسیر پایین‌شمار) برای این بخش در اختیار قرار نگرفت.
+
+
+
+
+
+
+\subsection{دیاگرام طرح نهایی}
+شکل \ref{fig:3-3-main} شماتیک نهایی مدار شمارنده‌ی دو رقمی \lr{BCD} به همراه بارگذاری موازی و ریست را نشان می‌دهد.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\linewidth]{3-3-main.PNG}
+	\caption{طرح نهایی مدار آزمایش ۳-۳}
+	\label{fig:3-3-main}
+\end{figure}
+
+در طرح اولیه، در صورت رسیدن شمارش به ۶۳، مدار مستقیماً به مقدار بارگذاری‌شده \lr{(Load)} بازمی‌گشت و نه به ۰، و همچنین مسیر پایین‌شمار دچار اشکال بود. به همین دلیل، در طرح نهایی دو مالتی‌پلکسر اضافه، و تعدادی گیت حذف و تعدادی گیت دیگر اضافه شدند تا عملکرد صحیح مدار (ریست درست به ۰ در جهت بالاشمار، ریست درست به ۶۳ در جهت پایین‌شمار، و بارگذاری موازی صحیح) به‌دست آید.
+
+\subsection{بررسی \lr{Test Case} ها}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-1.png}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-2.png}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-3.png}\caption*{حالت ۳}\end{subfigure}\\[0.3cm]
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-4.png}\caption*{حالت ۴}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-5.png}\caption*{حالت ۵}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-up-6.png}\caption*{حالت ۶}\end{subfigure}
+	\caption{تست حالت بالاشمار \lr{(Count Up)} — آزمایش ۳-۳}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-1.png}\caption*{حالت ۱}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-2.png}\caption*{حالت ۲}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-3.png}\caption*{حالت ۳}\end{subfigure}\\[0.3cm]
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-4.png}\caption*{حالت ۴}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-5.png}\caption*{حالت ۵}\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}\includegraphics[width=\linewidth]{3-3-count-down-6.png}\caption*{حالت ۶}\end{subfigure}
+	\caption{تست حالت پایین‌شمار \lr{(Count Down)} — آزمایش ۳-۳}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{0.31\linewidth}\includegraphics[width=\linewidth]{3-3-parallel-load.png}\caption*{بارگذاری موازی}\end{subfigure}
+	\begin{subfigure}{0.31\linewidth}\includegraphics[width=\linewidth]{3-3-parallel-load-up.png}\caption*{بارگذاری + بالاشمار}\end{subfigure}
+	\begin{subfigure}{0.31\linewidth}\includegraphics[width=\linewidth]{3-3-parallel-load-down.png}\caption*{بارگذاری + پایین‌شمار}\end{subfigure}
+	\caption{تست بارگذاری موازی \lr{(Parallel Load)} — آزمایش ۳-۳}
+\end{figure}
+
+نتایج آزمایش نشان می‌دهد که مدار به‌درستی از ۰ تا ۶۳ و برعکس می‌شمارد، در لحظه‌ی رسیدن به ۶۳ (در جهت بالاشمار) به ۰ بازمی‌گردد و در لحظه‌ی رسیدن به ۰ (در جهت پایین‌شمار) به ۶۳ بازمی‌گردد. همچنین بارگذاری موازی مقدار دلخواه را بدون توجه به مقدار قبلی، به‌درستی در شمارنده قرار می‌دهد.
+
+\subsection{نتیجه‌گیری}
+مدار به‌کمک تراشه‌های ۷۴۱۹۰ و مالتی‌پلکسرهای ۷۴۱۵۷ به‌درستی از ۰ تا ۶۳ در هر دو جهت شمرد و بارگذاری موازی و ریست در نقاط مرزی نیز صحیح عمل کرد.
+
+\newpage
+
+\section{نتیجه‌گیری کلی}
+
+در این آزمایش، چهار رویکرد مختلف برای طراحی شمارنده‌های همگام بالا/پایین‌شمار بررسی و پیاده‌سازی شد:
+
+\begin{itemize}[rightmargin=0pt]
+	\item در بخش‌های ۳-۱-۱ و ۳-۱-۲، شمارنده از پایه و با فلیپ‌فلاپ‌های جی‌کی و منطق ترکیبی سفارشی ساخته شد که کنترل کامل بر جزئیات طراحی و انعطاف‌پذیری بالایی فراهم می‌کند، اما پیچیدگی مدار و زمان طراحی را افزایش می‌دهد.
+	\item در بخش ۳-۲، همین رویکرد برای یک شمارنده‌ی ۳ بیتی با نمایشگر هفت‌قسمتی به‌کار رفت که خوانایی نتایج را بهبود داد.
+	\item در بخش ۳-۳، استفاده از تراشه‌های آماده‌ی ۷۴۱۹۰ همراه با مالتی‌پلکسرهای ۷۴۱۵۷، پیاده‌سازی یک شمارنده‌ی دو رقمی کامل با تمام قابلیت‌های موردنیاز (بالا/پایین‌شمار، بارگذاری موازی و ریست) را با تعداد قطعات و پیچیدگی کمتر ممکن ساخت.
+\end{itemize}
+
+به‌طورکلی، این آزمایش نشان داد که انتخاب بین طراحی سفارشی با فلیپ‌فلاپ‌های مجزا و استفاده از تراشه‌های آماده، بسته به میزان کنترل موردنیاز، پیچیدگی مدار و محدودیت‌های عملی طراحی متفاوت خواهد بود؛ و در هر دو رویکرد، منطق ترکیبی کمکی (گیت‌های \lr{XOR}، \lr{NAND}، \lr{AND/OR} و مالتی‌پلکسر) نقش کلیدی در دستیابی به رفتار صحیح شمارنده در حالت‌های خاص (مرزها، بارگذاری، تغییر جهت) ایفا می‌کند.
+
+\end{document}
